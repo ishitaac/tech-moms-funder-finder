@@ -98,8 +98,8 @@ body {
  * Spacing follows an 8px grid (8, 16, 24, 32, 40).
  */
 @theme {
-  --text-page: 2rem;
-  --text-page--line-height: 2.5rem;
+  --text-display: 2rem;
+  --text-display--line-height: 2.5rem;
   --text-section: 1.125rem;
   --text-section--line-height: 1.75rem;
   --text-title: 1.75rem;

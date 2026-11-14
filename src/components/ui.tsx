@@ -16,7 +16,7 @@ export function Card({ children, className = "", as: Tag = "section", ...rest }:
 export function StatCard({ label, value, hint, icon, tone = "plum" }: { label: string; value: ReactNode; hint?: ReactNode; icon: ReactNode; tone?: "plum" | "teal" | "rose" }) {
   const toneBg = { plum: "bg-plum-tint", teal: "bg-teal-tint", rose: "bg-rose-tint" }[tone];
   return (
-    <div className={`${CARD} flex items-start gap-4 p-5`}>
+    <div className={`${CARD} flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4 sm:p-5`}>
       <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum ${toneBg}`}>{icon}</span>
       <div className="min-w-0">
         <p className="text-sm text-muted">{label}</p>
@@ -148,7 +148,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div className="max-w-2xl">
-        <h1 className="text-page font-semibold text-plum">{title}</h1>
+        <h1 className="text-display font-semibold text-plum">{title}</h1>
         {subtitle && <p className="mt-2 text-body text-muted">{subtitle}</p>}
       </div>
       {actions}

@@ -45,7 +45,7 @@ export async function FunderList({ searchParams }: { searchParams: Promise<Recor
     <div className="space-y-6">
       <TrustBanner />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Strong matches" value={strongCount} hint="best alignment with our mission" icon={<SparkleIcon />} tone="teal" />
         <StatCard label="Open opportunities" value={openCalls} hint="accepting applications now" icon={<DoorIcon />} tone="teal" />
         <StatCard label="Deadlines soon" value={dueSoon} hint={`in the next ${DEADLINE_SOON_DAYS} days`} icon={<CalendarIcon />} tone="rose" />

@@ -128,8 +128,25 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
       </div>
 
       <div className="mt-4 border-t border-line pt-3">
-        <p className="text-meta text-muted">Amount requested</p>
-        <p className="text-[17px] font-semibold tabular-nums text-plum">{money(card.amountAsked)}</p>
+        <div className="flex items-end justify-between gap-2">
+          <div>
+            <p className="text-meta text-muted">Amount requested</p>
+            <p className="text-[17px] font-semibold tabular-nums text-plum">{money(card.amountAsked)}</p>
+          </div>
+          <div {...stop}>
+          <button
+            ref={btnRef}
+            type="button"
+            onClick={togglePopover}
+            aria-expanded={editing}
+            aria-controls={editing ? popId : undefined}
+            aria-haspopup="dialog"
+            className="shrink-0 rounded-full border border-plum/30 bg-card px-3 py-1.5 text-sm font-semibold text-plum hover:bg-plum-tint"
+          >
+            Edit amounts
+          </button>
+          </div>
+        </div>
         {(card.amountAwarded || card.received > 0) && (
           <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
             <div>
@@ -149,7 +166,7 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
         NEXT_ACTION[card.stage] && <p className="mt-3 text-sm text-muted">{NEXT_ACTION[card.stage]}</p>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2" {...stop}>
+      <div className="mt-3" {...stop}>
         <label className="sr-only" htmlFor={`stage-${card.id}`}>
           Move {card.funderName} to another stage
         </label>
@@ -157,7 +174,7 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
           id={`stage-${card.id}`}
           value={card.stage}
           onChange={(e) => onStageChange(card.id, e.target.value as Stage)}
-          className="shrink-0 rounded-full border border-line bg-card py-2 pl-3 pr-2 text-sm font-medium text-plum"
+          className="w-full rounded-full border border-line bg-card py-2 pl-3 pr-2 text-sm font-medium text-plum"
         >
           {STAGES.map((s) => (
             <option key={s} value={s}>
@@ -165,17 +182,6 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
             </option>
           ))}
         </select>
-        <button
-          ref={btnRef}
-          type="button"
-          onClick={togglePopover}
-          aria-expanded={editing}
-          aria-controls={editing ? popId : undefined}
-          aria-haspopup="dialog"
-          className="ml-auto shrink-0 rounded-full border border-plum/30 bg-card px-3 py-2 text-sm font-semibold text-plum hover:bg-plum-tint"
-        >
-          Edit amounts
-        </button>
       </div>
 
       {editing &&

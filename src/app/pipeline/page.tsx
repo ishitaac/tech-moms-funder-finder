@@ -11,7 +11,7 @@ export default function PipelinePage() {
   return (
     <div className="mx-auto max-w-[1280px] sm:-mx-4">
       <header className="mb-6">
-        <h1 className="text-page font-semibold text-plum">Funding pipeline</h1>
+        <h1 className="text-display font-semibold text-plum">Funding pipeline</h1>
         <p className="mt-2 text-body text-muted">Track each opportunity from first look to award.</p>
       </header>
       <Suspense fallback={<div className="h-96 animate-pulse rounded-[16px] bg-card" />}>
