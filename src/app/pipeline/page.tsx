@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { PipelineBoard } from "@/components/pipeline/pipeline-board";
-import { PageHeader } from "@/components/ui";
 import { pipelineCards } from "@/lib/pipeline-queries";
 
 async function Board() {
@@ -10,14 +9,14 @@ async function Board() {
 
 export default function PipelinePage() {
   return (
-    <>
-      <PageHeader
-        title="Funding pipeline"
-        subtitle="Approved matches land here as prospects. Drag a card (or use its stage menu) to move it. Committed = awarded; received = payments recorded."
-      />
+    <div className="mx-auto max-w-[1280px] sm:-mx-4">
+      <header className="mb-6">
+        <h1 className="text-title font-semibold! text-plum">Funding pipeline</h1>
+        <p className="mt-1 text-body text-muted">Approved matches land here as prospects. Drag a card, or use its stage menu, to move it.</p>
+      </header>
       <Suspense fallback={<div className="h-96 animate-pulse rounded-[16px] bg-card" />}>
         <Board />
       </Suspense>
-    </>
+    </div>
   );
 }
