@@ -89,7 +89,7 @@ function Column({
     <section
       ref={setNodeRef}
       aria-label={`${STAGE_LABELS[stage]} column`}
-      className={`stage-${stage} w-[78%] min-w-[260px] shrink-0 snap-start rounded-[16px] p-1 transition-colors min-[1400px]:w-auto min-[1400px]:min-w-0 ${isOver ? "bg-(--stage-bg) ring-2 ring-plum ring-offset-2 ring-offset-page" : ""}`}
+      className={`stage-${stage} w-[min(78%,300px)] min-w-[260px] shrink-0 snap-start rounded-[16px] p-1 transition-colors min-[1400px]:w-auto min-[1400px]:min-w-0 ${isOver ? "bg-(--stage-bg) ring-2 ring-plum ring-offset-2 ring-offset-page" : ""}`}
     >
       <header className="flex items-center justify-between gap-2 rounded-[12px] bg-(--stage-bg) px-4 py-3">
         <h2 className="flex items-center gap-2 text-col font-semibold! text-plum">
