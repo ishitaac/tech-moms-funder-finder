@@ -74,7 +74,7 @@ export function Sidebar({ unread }: { unread: number }) {
                 <span className="flex-1">{label}</span>
                 {href === "/notifications" && unread > 0 && (
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${active ? "bg-white text-plum" : "bg-rose text-plum"}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${active ? "bg-card text-plum" : "bg-rose text-plum"}`}
                     aria-label={`${unread} unread`}
                   >
                     {unread}

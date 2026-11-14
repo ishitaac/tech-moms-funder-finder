@@ -46,7 +46,7 @@ export function TrustBanner() {
           Learn more
         </a>
       </p>
-      <button type="button" onClick={dismiss} aria-label="Dismiss this message" className="shrink-0 rounded-full p-1.5 text-plum hover:bg-white">
+      <button type="button" onClick={dismiss} aria-label="Dismiss this message" className="shrink-0 rounded-full p-1.5 text-plum hover:bg-card">
         <CloseIcon className="h-4 w-4" />
       </button>
     </div>

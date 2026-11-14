@@ -17,7 +17,7 @@ export function RefreshButton() {
             setMsg(r.ok ? "Refresh complete." : r.error);
           })
         }
-        className="rounded-md bg-teal px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+        className="rounded-full bg-teal px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
       >
         Refresh now
       </button>
@@ -39,7 +39,7 @@ export function ClearSampleButton() {
           setDone(r.ok);
         });
       }}
-      className="rounded-md border border-line px-3 py-1.5 text-sm font-semibold text-rose hover:bg-rose-soft disabled:opacity-60"
+      className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-plum hover:bg-rose-tint disabled:opacity-60"
     >
       {done ? "Sample data cleared" : "Clear sample data"}
     </button>

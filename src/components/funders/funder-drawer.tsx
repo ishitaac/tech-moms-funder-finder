@@ -81,7 +81,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
         <div className="flex-1 space-y-8 px-6 py-6 text-sm">
           <section>
             <h3 className="mb-1.5 text-sm font-medium text-plum">Why this match</h3>
-            <p className="text-ink">{row.excludedReason ? `Excluded: ${row.excludedReason}` : row.reason}</p>
+            <p className="text-plum">{row.excludedReason ? `Excluded: ${row.excludedReason}` : row.reason}</p>
             <div className="mt-1">
               <SourceLink href={row.reasonSourceUrl}>{row.filingYear ? `990 filing, tax year ${row.filingYear}` : "Source"}</SourceLink>
             </div>
@@ -95,7 +95,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
                 return (
                   <li key={k}>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-ink">{COMPONENT_LABELS[k]}</span>
+                      <span className="font-medium text-plum">{COMPONENT_LABELS[k]}</span>
                       <span className="text-xs text-muted">
                         weight {Math.round(c.weight * 100)}% · {c.score === null ? "unknown" : `${Math.round(c.score * 100)}/100`}
                       </span>
@@ -165,7 +165,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
                 {detail.topGrants.map((g) => (
                   <li key={g.id} className="flex items-start justify-between gap-3 px-3 py-2">
                     <div>
-                      <p className="font-medium text-ink">{g.recipientName}</p>
+                      <p className="font-medium text-plum">{g.recipientName}</p>
                       <p className="text-xs text-muted">
                         {[g.recipientCity, g.recipientState].filter(Boolean).join(", ")}
                         {g.purpose ? ` · ${g.purpose}` : ""}
@@ -184,7 +184,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
               <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                 {detail.people.map((p) => (
                   <li key={p.id}>
-                    <span className="font-medium text-ink">{p.name}</span>
+                    <span className="font-medium text-plum">{p.name}</span>
                     {p.title && <span className="text-muted"> · {p.title}</span>}
                   </li>
                 ))}
