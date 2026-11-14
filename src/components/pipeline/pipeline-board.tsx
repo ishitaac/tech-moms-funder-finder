@@ -61,7 +61,7 @@ export function PipelineBoard({ initialCards }: { initialCards: PipelineCard[] }
       )}
       {/* Stable id keeps dnd-kit's aria ids identical on server and client (avoids hydration mismatch). */}
       <DndContext id="pipeline-board" sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 min-[1400px]:mx-0 min-[1400px]:grid min-[1400px]:grid-cols-5 min-[1400px]:gap-3 min-[1400px]:overflow-visible min-[1400px]:px-0">
+        <div className="relative -mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 min-[1400px]:mx-0 min-[1400px]:grid min-[1400px]:grid-cols-5 min-[1400px]:gap-3 min-[1400px]:overflow-visible min-[1400px]:px-0">
           {STAGES.map((stage) => (
             <Column key={stage} stage={stage} cards={cards.filter((c) => c.stage === stage)} total={stageTotal(cards, stage)} onStageChange={changeStage} onCardChange={(c) => setCards((cs) => cs.map((x) => (x.id === c.id ? c : x)))} />
           ))}
