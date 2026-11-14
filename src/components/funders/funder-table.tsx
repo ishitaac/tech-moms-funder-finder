@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ListRow } from "@/lib/queries";
-import { BandBadge, CARD, OpenCallBadge, Pill, ScoreBadge, typeLabel } from "@/components/ui";
+import { BandBadge, CARD, OpenCallBadge, Pill, ScoreBadge, softenCaps, typeLabel } from "@/components/ui";
 import { ActionButtons } from "./action-buttons";
 import { FunderDrawer } from "./funder-drawer";
 
@@ -58,7 +58,7 @@ export function FunderTable({ rows, totalMatching, isExcludedView, showPeople, s
 
                   <p className="mt-4 text-body leading-relaxed text-plum">
                     <span className="font-semibold">{isExcludedView ? "Why it’s hidden: " : "Why it matches: "}</span>
-                    <span className="line-clamp-2">{isExcludedView ? r.excludedReason : r.reason}</span>
+                    <span className="line-clamp-2">{softenCaps(isExcludedView ? r.excludedReason : r.reason)}</span>
                   </p>
 
                   <div className="mt-5">

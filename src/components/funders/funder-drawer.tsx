@@ -5,7 +5,7 @@ import { loadFunderDetail } from "@/app/actions";
 import { COMPONENT_KEYS, COMPONENT_LABELS } from "@/config/scoring";
 import type { FunderDetail, ListRow } from "@/lib/queries";
 import { CloseIcon } from "@/components/icons";
-import { BandBadge, OpenCallBadge, ScoreBadge, SourceLink, shortDate, typeLabel, usd } from "@/components/ui";
+import { BandBadge, OpenCallBadge, ScoreBadge, SourceLink, shortDate, softenCaps, typeLabel, usd } from "@/components/ui";
 import { ActionButtons, NotAFitButton } from "./action-buttons";
 import { DraftPanel } from "./draft-panel";
 
@@ -104,7 +104,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
   const focusBullets = (["mission", "women", "geography"] as const)
     .map((k) => row.components[k])
     .filter((c) => c.score !== null && c.evidence)
-    .flatMap((c) => toBullets(c.evidence, 1));
+    .flatMap((c) => toBullets(softenCaps(c.evidence), 1));
   const eligibilityBullets = toBullets(openOpp?.eligibility);
   const evidenceBullets = (["history", "access"] as const)
     .map((k) => row.components[k])
@@ -151,7 +151,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
 
           <p className="mt-5 text-body leading-relaxed text-plum">
             <span className="font-semibold">{row.excludedReason ? "Why it’s hidden: " : "Why it matches: "}</span>
-            {row.excludedReason ?? row.reason}
+            {softenCaps(row.excludedReason ?? row.reason)}
           </p>
 
           <dl className="mt-5 grid grid-cols-1 gap-4 rounded-[12px] bg-page p-4 sm:grid-cols-2">
@@ -198,8 +198,8 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
                 {detail.topGrants.slice(0, 5).map((g) => (
                   <li key={g.id} className="flex items-start justify-between gap-3 px-4 py-3">
                     <div className="min-w-0">
-                      <p className="font-medium">{g.recipientName}</p>
-                      <p className="text-sm text-muted">{[g.recipientCity, g.recipientState].filter(Boolean).join(", ")}</p>
+                      <p className="font-medium">{softenCaps(g.recipientName)}</p>
+                      <p className="text-sm text-muted">{[softenCaps(g.recipientCity), g.recipientState].filter(Boolean).join(", ")}</p>
                     </div>
                     <span className="whitespace-nowrap font-medium tabular-nums">{usd(g.amount)}</span>
                   </li>

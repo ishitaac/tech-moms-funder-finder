@@ -158,3 +158,33 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 
 export const usd = (n: number | null | undefined) =>
   n === null || n === undefined ? "—" : `$${Math.round(n).toLocaleString("en-US")}`;
+
+const KEEP_CAPS = new Set(["LLC", "USA", "LOI", "STEM", "YMCA", "YWCA", "PTA", "NAACP"]);
+const CONNECTORS = new Set(["OF", "AND", "FOR", "THE", "IN", "ON", "AT", "TO", "OR"]);
+
+function softenWord(w: string, first: boolean): string {
+  const trailingDot = w.endsWith(".");
+  const bare = trailingDot ? w.slice(0, -1) : w;
+  if (KEEP_CAPS.has(bare)) return w;
+  const lower = bare.toLowerCase();
+  let cased: string;
+  if (CONNECTORS.has(bare) && !first) cased = lower;
+  else if (bare.length <= 2) cased = bare; // state codes and initials stay as they are
+  else cased = lower === "inc" ? "Inc" : lower.charAt(0).toUpperCase() + lower.slice(1);
+  return trailingDot ? `${cased}.` : cased;
+}
+
+/**
+ * Display-only: filings often shout names in ALL CAPS ("BOYS AND GIRLS CLUBS INC").
+ * Turns those into normal capitalization without touching the stored text.
+ */
+export function softenCaps(text: string | null | undefined): string {
+  if (!text) return "";
+  // Runs of two or more ALL-CAPS words (names), then any single long ALL-CAPS word left over.
+  return text
+    .replace(/\b[A-Z][A-Z'&.-]*(?:\s+[A-Z][A-Z'&.-]*)+\b\.?/g, (run) => {
+      let i = 0;
+      return run.split(/(\s+)/).map((tok) => (/^\s+$/.test(tok) ? tok : softenWord(tok, i++ === 0))).join("");
+    })
+    .replace(/\b[A-Z][A-Z'&.-]{2,}\b\.?/g, (w) => softenWord(w, true));
+}
