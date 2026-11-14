@@ -24,3 +24,6 @@ Format: **Item** — context · options · recommendation (if any).
     - A foundation that has granted to Tech-Moms is never gated out (Kahlert and LHM tick "preselected only" yet fund Tech-Moms) and is labelled "Past funder".
     - Bands recalibrated from PRD 75/55 to **Strong ≥ 50 / Worth a look ≥ 35** — without the AI mission read, the 99th percentile score is 45. Known funders rank 26–43 of ~2,000 (top 2%) and band "Worth a look". Revisit once AI is on (mission scores will rise).
     - **Decision needed:** should "preselected organizations only" exclude funders at all? Two real Tech-Moms funders tick it. Option: show them as "Invitation only — needs warm intro" instead of excluding.
+14. **OneDrive breaks hot reload** (2026-11-13, Claude) — on the build laptop, new files weren't picked up by Tailwind/Turbopack until `npm run dev` was restarted (missing CSS classes). If styles look broken after adding a file, restart dev. Strong reason to clone outside OneDrive (see #8).
+15. **Tech-Moms program facts for AI drafts** — `src/config/org-profile.ts` only has what's in the PRD. Fill in public facts (cohort sizes, outcomes, program names) before demoing US-10, or the draft will contain [placeholders].
+16. **"AI provider does not train on our data"** is stated in the trust banner. True for the Anthropic API by default; re-check if the provider changes tomorrow.
