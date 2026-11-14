@@ -52,3 +52,34 @@ export async function paymentRows(): Promise<PaymentRow[]> {
     isSample: p.isSample,
   }));
 }
+
+export interface DeadlineRow {
+  key: string;
+  funderName: string;
+  title: string;
+  deadline: string;
+  kind: "pipeline" | "open call";
+  link: string;
+}
+
+const DEADLINE_WINDOW_DAYS = 60;
+
+/** Applications and open calls due within the next 60 days (PRD dashboard: upcoming deadlines). */
+export async function upcomingDeadlines(today = new Date()): Promise<DeadlineRow[]> {
+  await connection();
+  const from = today.toISOString().slice(0, 10);
+  const to = new Date(today.getTime() + DEADLINE_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
+  const cards = await pipelineCards();
+  const pipelineRows: DeadlineRow[] = cards
+    .filter((c) => c.deadline && c.deadline >= from && c.deadline <= to && c.stage !== "awarded" && c.stage !== "declined")
+    .map((c) => ({ key: `p${c.id}`, funderName: c.funderName, title: c.opportunityTitle ?? "Application", deadline: c.deadline!, kind: "pipeline", link: "/pipeline" }));
+  const opps = await db
+    .select({ o: schema.opportunities, name: schema.funders.name })
+    .from(schema.opportunities)
+    .innerJoin(schema.funders, eq(schema.opportunities.funderId, schema.funders.id))
+    .where(eq(schema.opportunities.isOpen, "open"));
+  const oppRows: DeadlineRow[] = opps
+    .filter(({ o }) => o.deadline && o.deadline >= from && o.deadline <= to)
+    .map(({ o, name }) => ({ key: `o${o.id}`, funderName: name, title: o.title, deadline: o.deadline!, kind: "open call", link: o.sourceUrl }));
+  return [...pipelineRows, ...oppRows].sort((a, b) => a.deadline.localeCompare(b.deadline));
+}
