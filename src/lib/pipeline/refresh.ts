@@ -21,6 +21,7 @@ import { saveOpportunities } from "./save-opportunities";
 import { scoreAll } from "./score-all";
 
 const REFRESH_INTERVAL_DAYS = 14;
+const WEBSITE_CONCURRENCY = 6;
 const SOURCES: SourceAdapter[] = [grantsGovAdapter, utahPagesAdapter];
 
 const hash = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -75,60 +76,72 @@ async function aiEnrichShortlist(meter: UsageMeter, errors: SourceError[]): Prom
     .where(and(inArray(schema.extractedFields.funderId, withSites.map((f) => f.id).concat(0)), eq(schema.extractedFields.field, "website_hash")));
   const hashBy = new Map(hashes.map((h) => [h.funderId, h.value as string]));
 
-  let processed = 0;
-  let skipped = 0;
-  for (const f of withSites) {
-    if (meter.exhausted) {
-      errors.push({ source: "ai", message: "Token cap reached — remaining funders keep their previous results." });
+  type Outcome = "processed" | "skipped" | "failed";
+  const enrichOne = async (f: (typeof withSites)[number]): Promise<Outcome> => {
+    const pages = await grantPages(f.website!);
+    const texts = (await Promise.all(pages.map(fetchPageText))).filter((t): t is string => !!t);
+    if (!texts.length) {
+      errors.push({ source: "website", message: `Could not read ${f.name}'s website`, url: f.website! });
+      return "failed";
+    }
+    const combined = texts.join("\n\n");
+    const h = hash(combined);
+    if (hashBy.get(f.id) === h) return "skipped";
+
+    const mission = await rateMission(combined, meter);
+    if (mission) await upsertField(f.id, "mission_rating", { rating: mission.rating, quote: mission.quote }, pages[0], mission.model);
+    await upsertField(f.id, "website_text", combined.slice(0, 4000), pages[0], null);
+
+    for (const url of pages) {
+      const call = await detectOpenCall(url, meter);
+      if (call?.isOpen !== "open") continue;
+      await saveOpportunities([
+        {
+          externalId: `web:${f.id}:${hash(url)}`,
+          funderName: f.name,
+          funderType: f.type,
+          title: `${f.name} grant cycle`,
+          description: call.quote,
+          eligibility: null,
+          geography: null,
+          awardMin: call.awardMin,
+          awardMax: call.awardMax,
+          deadline: call.deadline,
+          isOpen: "open",
+          route: call.route,
+          sourceUrl: call.sourceUrl,
+          website: f.website,
+        },
+      ]);
       break;
     }
-    try {
-      const pages = await grantPages(f.website!);
-      const texts = (await Promise.all(pages.map(fetchPageText))).filter((t): t is string => !!t);
-      if (!texts.length) {
-        errors.push({ source: "website", message: `Could not read ${f.name}'s website`, url: f.website! });
-        continue;
-      }
-      const combined = texts.join("\n\n");
-      const h = hash(combined);
-      if (hashBy.get(f.id) === h) {
-        skipped++;
-        continue;
-      }
+    await upsertField(f.id, "website_hash", h, pages[0], null);
+    return "processed";
+  };
 
-      const mission = await rateMission(combined, meter);
-      if (mission) await upsertField(f.id, "mission_rating", { rating: mission.rating, quote: mission.quote }, pages[0], mission.model);
-      await upsertField(f.id, "website_text", combined.slice(0, 4000), pages[0], null);
-
-      for (const url of pages) {
-        const call = await detectOpenCall(url, meter);
-        if (call?.isOpen !== "open") continue;
-        await saveOpportunities([
-          {
-            externalId: `web:${f.id}:${hash(url)}`,
-            funderName: f.name,
-            funderType: f.type,
-            title: `${f.name} grant cycle`,
-            description: call.quote,
-            eligibility: null,
-            geography: null,
-            awardMin: call.awardMin,
-            awardMax: call.awardMax,
-            deadline: call.deadline,
-            isOpen: "open",
-            route: call.route,
-            sourceUrl: call.sourceUrl,
-            website: f.website,
-          },
-        ]);
-        break;
+  // Small worker pool: websites are slow (~20s each sequentially); keep load on funder sites polite.
+  let processed = 0;
+  let skipped = 0;
+  let next = 0;
+  let capNoted = false;
+  const worker = async () => {
+    while (next < withSites.length) {
+      if (meter.exhausted) {
+        if (!capNoted) errors.push({ source: "ai", message: "Token cap reached — remaining funders keep their previous results." });
+        capNoted = true;
+        return;
       }
-      await upsertField(f.id, "website_hash", h, pages[0], null);
-      processed++;
-    } catch (err) {
-      errors.push({ source: "ai", message: `${f.name}: ${String(err).slice(0, 160)}` });
+      const f = withSites[next++];
+      try {
+        const outcome = await enrichOne(f);
+        if (outcome === "processed") processed++;
+        if (outcome === "skipped") skipped++;
+      } catch (err) {
+        errors.push({ source: "ai", message: `${f.name}: ${String(err).slice(0, 160)}` });
+      }
     }
-  }
+  };
+  await Promise.all(Array.from({ length: WEBSITE_CONCURRENCY }, worker));
   return { processed, skipped };
 }
 
@@ -170,7 +183,7 @@ export async function runRefresh({ force = false } = {}): Promise<{ ran: boolean
     const newOpenCalls = await pullSources(errors);
     let ai = { processed: 0, skipped: 0 };
     if (isAiConfigured()) ai = await aiEnrichShortlist(meter, errors);
-    else errors.push({ source: "ai", message: "AI not configured (no API key) — scored from public filings only." });
+    else errors.push({ source: "ai", message: "AI is off (set AI_ENABLED=true and a key) — scored from public filings only." });
 
     const summary = await scoreAll(refresh.id);
     if (isAiConfigured()) await polishReasons(refresh.id, meter);

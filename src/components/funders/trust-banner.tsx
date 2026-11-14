@@ -1,29 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const KEY = "ff-trust-banner-dismissed";
+const EVENT = "ff-trust-banner";
+
+function read(): boolean {
+  try {
+    return localStorage.getItem(KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function subscribe(cb: () => void) {
+  window.addEventListener(EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+}
 
 /** First-screen privacy and AI statement (PRD non-functional: Privacy). */
 export function TrustBanner() {
-  const [hidden, setHidden] = useState(true);
+  // Server snapshot = hidden, so SSR and first client render agree; it appears after hydration if not dismissed.
+  const dismissed = useSyncExternalStore(subscribe, read, () => true);
+  if (dismissed) return null;
 
-  useEffect(() => {
-    try {
-      setHidden(localStorage.getItem(KEY) === "1");
-    } catch {
-      setHidden(false);
-    }
-  }, []);
-
-  if (hidden) return null;
   const dismiss = () => {
-    setHidden(true);
     try {
       localStorage.setItem(KEY, "1");
     } catch {
-      // private mode: banner just reappears next visit
+      // private mode: banner reappears next visit
     }
+    window.dispatchEvent(new Event(EVENT));
   };
 
   return (

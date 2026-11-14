@@ -42,7 +42,7 @@ export const utahPagesAdapter: SourceAdapter = {
     const today = new Date().toISOString().slice(0, 10);
 
     if (!isAiConfigured()) {
-      return { items, errors: [{ source: "utah-pages", message: "Needs AI to read Utah pages (no API key)" }], fetchedAt: new Date() };
+      return { items, errors: [{ source: "utah-pages", message: "Needs AI to read Utah pages (AI is off)" }], fetchedAt: new Date() };
     }
 
     for (const src of UTAH_SOURCES.filter((s) => !s.manual)) {

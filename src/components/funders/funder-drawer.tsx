@@ -20,9 +20,8 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
+    // The parent remounts this drawer per funder (key), so state starts fresh for each.
     let cancelled = false;
-    setDetail(null);
-    setMessage(null);
     loadFunderDetail(row.funderId).then((d) => !cancelled && setDetail(d));
     return () => {
       cancelled = true;

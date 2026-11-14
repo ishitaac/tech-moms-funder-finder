@@ -35,7 +35,13 @@ export function getModel(role: ModelRole): LanguageModel {
   return factory(modelId(role));
 }
 
+/**
+ * AI runs only with an explicit opt-in (AI_ENABLED=true). A provider key alone is not enough,
+ * because an OS-level key (e.g. a personal ANTHROPIC_API_KEY) overrides .env files and would
+ * otherwise spend on someone's account without them choosing to.
+ */
 export function isAiConfigured(): boolean {
+  if (process.env.AI_ENABLED !== "true") return false;
   const providerName = process.env.AI_PROVIDER || "anthropic";
   if (providerName === "anthropic") return Boolean(process.env.ANTHROPIC_API_KEY);
   return true;

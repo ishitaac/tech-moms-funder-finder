@@ -94,7 +94,7 @@ export function FunderTable({ rows, totalMatching, isExcludedView, showPeople, s
         </p>
       )}
       {selected && (
-        <FunderDrawer row={selected} onClose={() => setSelected(null)} showPeople={showPeople} showDraft={showDraft} />
+        <FunderDrawer key={selected.scoreId} row={selected} onClose={() => setSelected(null)} showPeople={showPeople} showDraft={showDraft} />
       )}
     </>
   );
