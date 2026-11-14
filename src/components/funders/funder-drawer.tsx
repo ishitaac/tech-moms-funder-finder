@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { decide, loadFunderDetail } from "@/app/actions";
+import { useEffect, useRef, useState } from "react";
+import { loadFunderDetail } from "@/app/actions";
 import { COMPONENT_KEYS, COMPONENT_LABELS } from "@/config/scoring";
 import type { FunderDetail, ListRow } from "@/lib/queries";
-import { BandBadge, ConfidenceDots, OpenCallBadge, SourceLink, typeLabel, usd } from "@/components/ui";
+import { CloseIcon } from "@/components/icons";
+import { ConfidenceDots, OpenCallBadge, Pill, ScoreBadge, BandBadge, SourceLink, TypeTag, usd } from "@/components/ui";
+import { ActionButtons } from "./action-buttons";
 import { DraftPanel } from "./draft-panel";
 
 interface Props {
@@ -17,7 +19,11 @@ interface Props {
 export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
   const [detail, setDetail] = useState<FunderDetail | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     // The parent remounts this drawer per funder (key), so state starts fresh for each.
@@ -34,49 +40,47 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const act = (action: "approve" | "snooze" | "reject") =>
-    startTransition(async () => {
-      const r = await decide({ funderId: row.funderId, opportunityId: row.opportunityId, action });
-      setMessage(
-        r.ok
-          ? { approve: "Added to your pipeline as a Prospect.", snooze: "Snoozed — it will come back later.", reject: "Rejected — hidden from future lists unless something changes." }[action]
-          : r.error,
-      );
-    });
-
   const opp = detail?.opportunities.find((o) => o.id === row.opportunityId) ?? detail?.opportunities.find((o) => o.isOpen === "open");
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end" role="dialog" aria-modal="true" aria-label={`${row.name} details`}>
-      <button aria-label="Close" className="absolute inset-0 bg-ink/20" onClick={onClose} />
-      <aside className="relative flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl">
-        <header className="sticky top-0 z-10 border-b border-line bg-white px-5 py-4">
+      <button type="button" aria-label="Close" tabIndex={-1} className="absolute inset-0 bg-plum/30" onClick={onClose} />
+      <aside className="relative flex h-full w-full max-w-xl flex-col overflow-y-auto bg-card shadow-2xl">
+        <header className="sticky top-0 z-10 border-b border-line bg-card px-6 py-5">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted">
-                {typeLabel(row.type)}
-                {row.state ? ` · ${row.state}` : ""}
-              </p>
-              <h2 className="text-xl font-medium text-brand">{row.name}</h2>
-              {row.title && <p className="text-sm text-ink">{row.title}</p>}
+            <div className="min-w-0">
+              <h2 className="text-2xl font-medium leading-snug text-plum">{row.name}</h2>
+              {row.title && <p className="mt-1 text-sm text-muted">{row.title}</p>}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <TypeTag type={row.type} />
+                {row.state && <Pill>{row.state}</Pill>}
+                <OpenCallBadge isOpen={row.isOpen} deadline={row.deadline} />
+              </div>
             </div>
-            <button onClick={onClose} className="rounded-md px-2 py-1 text-muted hover:bg-canvas" aria-label="Close panel">
-              ✕
+            <button ref={closeRef} type="button" onClick={onClose} className="rounded-full p-2 text-plum hover:bg-plum-tint" aria-label="Close panel">
+              <CloseIcon className="h-5 w-5" />
             </button>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span className="font-display text-3xl font-medium text-ink">{row.total ?? "—"}</span>
-            <span className="text-xs text-muted">fit score</span>
-            <BandBadge band={row.band} />
-            <span className="flex items-center gap-1.5 text-xs text-muted">
-              <ConfidenceDots confidence={row.confidence} /> {row.confidence} confidence
-            </span>
+          <div className="mt-4 flex items-center gap-4">
+            <ScoreBadge total={row.total} band={row.band} size="md" />
+            <div className="space-y-1">
+              <BandBadge band={row.band} />
+              <p className="flex items-center gap-1.5 text-xs text-muted">
+                <ConfidenceDots confidence={row.confidence} /> {row.confidence} confidence
+              </p>
+            </div>
           </div>
+          {!row.excludedReason && (
+            <ActionButtons funderId={row.funderId} opportunityId={row.opportunityId} funderName={row.name} onResult={setMessage} className="mt-4" />
+          )}
+          <p role="status" aria-live="polite" className={message ? "mt-3 rounded-full bg-teal-tint px-4 py-2 text-sm text-plum" : "sr-only"}>
+            {message}
+          </p>
         </header>
 
-        <div className="flex-1 space-y-6 px-5 py-5 text-sm">
+        <div className="flex-1 space-y-8 px-6 py-6 text-sm">
           <section>
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Why this match</h3>
+            <h3 className="mb-1.5 text-sm font-medium text-plum">Why this match</h3>
             <p className="text-ink">{row.excludedReason ? `Excluded: ${row.excludedReason}` : row.reason}</p>
             <div className="mt-1">
               <SourceLink href={row.reasonSourceUrl}>{row.filingYear ? `990 filing, tax year ${row.filingYear}` : "Source"}</SourceLink>
@@ -84,7 +88,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Score breakdown</h3>
+            <h3 className="mb-2 text-sm font-medium text-plum">Score breakdown</h3>
             <ul className="space-y-3">
               {COMPONENT_KEYS.map((k) => {
                 const c = row.components[k];
@@ -96,8 +100,8 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
                         weight {Math.round(c.weight * 100)}% · {c.score === null ? "unknown" : `${Math.round(c.score * 100)}/100`}
                       </span>
                     </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
-                      {c.score !== null && <div className="h-full rounded-full bg-brand" style={{ width: `${c.score * 100}%` }} />}
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-plum-tint">
+                      {c.score !== null && <div className="h-full rounded-full bg-teal-logo" style={{ width: `${c.score * 100}%` }} />}
                     </div>
                     <p className="mt-1 text-xs text-muted">
                       {c.evidence ?? "Unknown — no public evidence found."} {c.sourceUrl && <SourceLink href={c.sourceUrl} />}
@@ -112,8 +116,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Open call</h3>
-            <OpenCallBadge isOpen={row.isOpen} deadline={row.deadline} />
+            <h3 className="mb-1.5 text-sm font-medium text-plum">Open call</h3>
             {opp && opp.isOpen === "open" ? (
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                 <dt className="text-muted">Deadline</dt>
@@ -140,7 +143,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
 
           {detail?.applicationInfo && (
             <section>
-              <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">How to apply (from 990-PF)</h3>
+              <h3 className="mb-1.5 text-sm font-medium text-plum">How to apply (from 990-PF)</h3>
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                 <dt className="text-muted">Materials</dt>
                 <dd>{detail.applicationInfo.materials ?? "—"}</dd>
@@ -155,10 +158,10 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
 
           {detail && detail.topGrants.length > 0 && (
             <section>
-              <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+              <h3 className="mb-1.5 text-sm font-medium text-plum">
                 Past grants (Utah first){detail.filing ? ` · TY${detail.filing.taxYear}` : ""}
               </h3>
-              <ul className="divide-y divide-line rounded-lg border border-line">
+              <ul className="divide-y divide-line rounded-[12px] border border-line">
                 {detail.topGrants.map((g) => (
                   <li key={g.id} className="flex items-start justify-between gap-3 px-3 py-2">
                     <div>
@@ -177,7 +180,7 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
 
           {showPeople && detail && detail.people.length > 0 && (
             <section>
-              <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Board & officers (public filing)</h3>
+              <h3 className="mb-1.5 text-sm font-medium text-plum">Board & officers (public filing)</h3>
               <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                 {detail.people.map((p) => (
                   <li key={p.id}>
@@ -194,20 +197,6 @@ export function FunderDrawer({ row, onClose, showPeople, showDraft }: Props) {
           {showDraft && <DraftPanel funderId={row.funderId} funderName={row.name} />}
         </div>
 
-        <footer className="sticky bottom-0 border-t border-line bg-white px-5 py-3">
-          {message && <p className="mb-2 text-sm text-ink" role="status">{message}</p>}
-          <div className="flex gap-2">
-            <button disabled={pending} onClick={() => act("approve")} className="flex-1 rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
-              Approve → pipeline
-            </button>
-            <button disabled={pending} onClick={() => act("snooze")} className="rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink hover:bg-canvas disabled:opacity-60">
-              Snooze
-            </button>
-            <button disabled={pending} onClick={() => act("reject")} className="rounded-md border border-line px-3 py-2 text-sm font-semibold text-rose hover:bg-rose-soft disabled:opacity-60">
-              Reject
-            </button>
-          </div>
-        </footer>
       </aside>
     </div>
   );
