@@ -12,4 +12,7 @@ Format: **Item** — context · options · recommendation (if any).
 5. **Auth** — none for the demo. If the deployed URL is public, add a shared-password gate (env var) before sharing.
 6. **Peer-org list review** — `data/peer-orgs.json` is generated; someone should prune it before the final ingest (it drives the candidate universe).
 7. **"Large change in giving" threshold** for un-hiding rejected funders — set at 50% change in total giving. Confirm.
+9. **Reverse-lookup breadth** (2026-11-13, Claude) — "any grant to a Utah recipient" keeps ~7% of all 990-PFs (thousands of foundations, many giving to churches/universities). The cheap shortlist filter (mission keywords on grant purposes, sweet-spot grant sizes, Utah $) narrows this to 100–150 before AI. Decide whether to tighten the scan criteria.
+10. **Docker Desktop hung on the build laptop** (2026-11-13) — the engine never started (`docker desktop status: stopped`, won't stop cleanly). Local dev switched to `npm run db:start` (embedded-postgres, port 5433). A Windows Postgres service already occupies 5432 on that machine. Nothing to decide unless someone prefers Docker.
+11. **Production DB** — pick Neon or Supabase (free tier) for the Vercel deploy and run `db:push` + `ingest load` against it.
 8. **Repo lives inside OneDrive** — `node_modules` and `.next` under OneDrive sync can be slow or lock files on Windows. Consider excluding the folder from sync or cloning outside OneDrive.

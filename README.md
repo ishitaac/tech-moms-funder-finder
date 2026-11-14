@@ -12,22 +12,33 @@ Public data only · no personal data in the database, prompts or logs · AI find
 
 ## Local setup
 
-Requires Node 20+ and Docker.
+Requires Node 20+. No Docker needed.
 
 ```bash
 npm install
-cp .env.example .env.local        # fill in keys
-docker compose up -d              # local Postgres on :5432
+cp .env.example .env.local        # fill in ANTHROPIC_API_KEY etc.
+npm run db:start                  # terminal 1: real Postgres on :5433 (embedded-postgres, data in data/pg)
 npm run db:push                   # create tables
 npm run db:seed                   # sample data so the UI is never empty
-npm run dev                       # http://localhost:3000
+npm run dev                       # terminal 2: http://localhost:3000
 ```
 
-Other scripts:
+Prefer Docker? `docker compose up -d` also serves Postgres on :5433 with the same credentials.
+
+## Data pipeline (local, heavy)
 
 ```bash
-npm test                          # unit tests (scoring, parsing, ICS)
-npm run ingest                    # heavy local ingest (990 XML, ProPublica) → Postgres
+npx tsx scripts/ingest/peer-orgs.ts     # starter peer-org list → data/peer-orgs.json (review it!)
+npx tsx scripts/ingest/scan-990pf.ts    # scan ~130k recent 990-PFs (~35 min, resumable) → data/cache/pf-relevant.jsonl
+npm run ingest -- load                  # load scan results into Postgres
+```
+
+Sources: IRS e-file index (apps.irs.gov) + GivingTuesday 990 data lake public S3 mirror for individual XML filings, ProPublica Nonprofit Explorer API, Grants.gov search2 API. All free, no keys.
+
+## Tests
+
+```bash
+npm test                          # unit tests (scoring, gates, reason, 990-PF parser)
 ```
 
 ## Working on this repo
