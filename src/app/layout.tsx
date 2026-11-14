@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Nunito_Sans, Oswald } from "next/font/google";
+import { Figtree } from "next/font/google";
 import { Suspense } from "react";
 import { AppNav } from "@/components/app-nav";
 import "./globals.css";
 
-const body = Nunito_Sans({ variable: "--font-body", subsets: ["latin"] });
-const heading = Oswald({ variable: "--font-heading", subsets: ["latin"], weight: ["500", "600"] });
+const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Funder Finder · Tech-Moms",
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${body.variable} ${heading.variable} h-full antialiased`}>
+    <html lang="en" className={`${figtree.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <Suspense fallback={<div className="h-16 border-b border-line bg-white" />}>
           <AppNav />
