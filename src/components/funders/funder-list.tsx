@@ -1,6 +1,6 @@
 import { addDays, formatDistanceToNow } from "date-fns";
 import { allFlags } from "@/config/flags";
-import { filterRows, parseFilters } from "@/lib/list-filters";
+import { filterRows, parseFilters, type Filters as FilterState } from "@/lib/list-filters";
 import { pipelineCards, stageTotal, upcomingDeadlines } from "@/lib/pipeline-queries";
 import { rankedRows } from "@/lib/queries";
 import { CalendarIcon, CoinsIcon, DoorIcon, SparkleIcon } from "@/components/icons";
@@ -17,10 +17,16 @@ export async function FunderList({ searchParams }: { searchParams: Promise<Recor
   const filters = parseFilters(params);
   const [{ rows, refresh }, cards, deadlines] = await Promise.all([rankedRows(), pipelineCards(), upcomingDeadlines()]);
   const today = new Date().toISOString().slice(0, 10);
-  const visible = filterRows(rows, filters, today);
+  // Location is a display filter applied here, so the shared filter logic stays as it was.
+  const locParam = Array.isArray(params.loc) ? params.loc[0] : params.loc;
+  const location = locParam === "utah" || locParam === "national" ? locParam : null;
+  const matchesLocation = (r: { state: string | null }) => !location || (location === "utah") === (r.state === "UT");
+  const visible = filterRows(rows, filters, today).filter(matchesLocation);
   const active = rows.filter((r) => !r.excludedReason);
-  const newCount = active.filter((r) => r.isNew).length;
-  const openCalls = active.filter((r) => r.isOpen).length;
+  // Summary numbers describe the default "top matches" list, before any filters.
+  const topMatches = filterRows(rows, { view: "shortlist", type: null, band: null, openOnly: false, q: "" } satisfies FilterState, today);
+  const strongCount = topMatches.filter((r) => r.band === "Strong").length;
+  const openCalls = topMatches.filter((r) => r.isOpen).length;
   const soonCutoff = addDays(new Date(), DEADLINE_SOON_DAYS).toISOString().slice(0, 10);
   const dueSoon = deadlines.filter((d) => d.deadline <= soonCutoff).length;
   const pipelineTotal = (["prospect", "loi", "submitted"] as const).reduce((s, st) => s + stageTotal(cards, st), 0);
@@ -40,18 +46,13 @@ export async function FunderList({ searchParams }: { searchParams: Promise<Recor
       <TrustBanner />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="New matches" value={newCount} hint="since last refresh" icon={<SparkleIcon />} tone="rose" />
-        <StatCard label="Open calls" value={openCalls} hint="accepting applications" icon={<DoorIcon />} tone="teal" />
-        <StatCard label="Deadlines" value={dueSoon} hint={`in the next ${DEADLINE_SOON_DAYS} days`} icon={<CalendarIcon />} tone="plum" />
-        <StatCard label="Pipeline total" value={usd(pipelineTotal)} hint="asked, still in progress" icon={<CoinsIcon />} tone="teal" />
+        <StatCard label="Strong matches" value={strongCount} hint="best alignment with our mission" icon={<SparkleIcon />} tone="teal" />
+        <StatCard label="Open opportunities" value={openCalls} hint="accepting applications now" icon={<DoorIcon />} tone="teal" />
+        <StatCard label="Deadlines soon" value={dueSoon} hint={`in the next ${DEADLINE_SOON_DAYS} days`} icon={<CalendarIcon />} tone="rose" />
+        <StatCard label="Active pipeline value" value={usd(pipelineTotal)} hint="requested, still in progress" icon={<CoinsIcon />} tone="plum" />
       </div>
 
-      <p className="text-sm text-muted">
-        Last refreshed <strong className="font-medium text-plum">{formatDistanceToNow(refresh.startedAt, { addSuffix: true })}</strong> ·{" "}
-        {rows.length.toLocaleString()} funders scored
-      </p>
-
-      <Filters filters={filters} excludedCount={excludedCount} />
+      <Filters filters={filters} location={location} excludedCount={excludedCount} updated={formatDistanceToNow(refresh.startedAt, { addSuffix: true })} />
       <FunderTable
         rows={visible.slice(0, MAX_ROWS)}
         totalMatching={visible.length}

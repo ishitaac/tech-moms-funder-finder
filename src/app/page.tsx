@@ -6,8 +6,8 @@ export default function FundersPage({ searchParams }: PageProps<"/">) {
   return (
     <>
       <PageHeader
-        title="Ranked funders"
-        subtitle="Grants and sponsorships most likely to fund Tech-Moms, ranked by fit score with the reason and source for each."
+        title="Find funding opportunities"
+        subtitle="Explore funders and grants that align with Tech-Moms’ mission."
       />
       <Suspense fallback={<div className="h-96 animate-pulse rounded-[16px] bg-card" />}>
         <FunderList searchParams={searchParams} />
