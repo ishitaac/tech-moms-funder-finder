@@ -2,13 +2,15 @@
 
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-/** Validated with the dataviz palette checker (light surface): all checks pass, CVD ΔE 9.4. */
+/** Brand chart colors: teal first series, rose second series, plum for text. Bars are also named in the legend/table, never color alone. */
 export const CHART = {
-  primary: "#1f6ea8",
-  secondary: "#bc697c",
-  grid: "#e2e5e9",
-  axis: "#5b6470",
+  primary: "#00b0b5",
+  secondary: "#be677c",
+  grid: "#eadfe6",
+  axis: "#6b5262",
+  ink: "#4b1b3c",
 } as const;
+const TOOLTIP = { contentStyle: { borderRadius: 12, border: "1px solid #eadfe6", color: "#4b1b3c", boxShadow: "0 2px 8px rgb(75 27 60 / 0.08)" } } as const;
 
 const money = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}K` : `$${n}`);
 const moneyFull = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
@@ -17,15 +19,15 @@ const RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 
 function TableView({ headers, rows }: { headers: string[]; rows: (string | number)[][] }) {
   return (
-    <details className="mt-2 text-xs text-muted">
-      <summary className="cursor-pointer">Show as table</summary>
+    <details className="mt-3 text-xs text-muted">
+      <summary className="cursor-pointer rounded-full px-3 py-1.5 font-medium text-plum hover:bg-plum-tint">Show as table</summary>
       <table className="mt-1 w-full text-left">
         <thead>
           <tr>{headers.map((h) => <th key={h} className="py-1 pr-3 font-semibold">{h}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} className="border-t border-line">{r.map((c, j) => <td key={j} className="py-1 pr-3 tabular-nums text-ink">{c}</td>)}</tr>
+            <tr key={i} className="border-t border-line">{r.map((c, j) => <td key={j} className="py-1 pr-3 tabular-nums text-plum">{c}</td>)}</tr>
           ))}
         </tbody>
       </table>
@@ -43,7 +45,7 @@ export function CommittedVsReceived({ data }: { data: { month: string; committed
             <CartesianGrid vertical={false} stroke={CHART.grid} />
             <XAxis dataKey="month" {...axisProps} />
             <YAxis tickFormatter={money} width={48} {...axisProps} />
-            <Tooltip formatter={(v) => moneyFull(Number(v))} cursor={{ fill: "rgba(31,110,168,0.06)" }} />
+            <Tooltip {...TOOLTIP} formatter={(v) => moneyFull(Number(v))} cursor={{ fill: "rgba(75,27,60,0.05)" }} />
             <Legend iconType="circle" wrapperStyle={{ fontSize: 12, color: CHART.axis }} />
             <Bar dataKey="committed" name="Committed (awarded)" fill={CHART.primary} radius={RADIUS} maxBarSize={28} />
             <Bar dataKey="received" name="Received" fill={CHART.secondary} radius={RADIUS} maxBarSize={28} />
@@ -74,7 +76,7 @@ export function SingleBars({
             <CartesianGrid horizontal={false} stroke={CHART.grid} />
             <XAxis type="number" tickFormatter={isMoney ? money : undefined} allowDecimals={false} {...axisProps} />
             <YAxis type="category" dataKey="label" width={96} {...axisProps} />
-            <Tooltip formatter={(v) => [fmt(Number(v)), valueLabel]} cursor={{ fill: "rgba(31,110,168,0.06)" }} />
+            <Tooltip {...TOOLTIP} formatter={(v) => [fmt(Number(v)), valueLabel]} cursor={{ fill: "rgba(75,27,60,0.05)" }} />
             <Bar dataKey="value" fill={CHART.primary} radius={[0, 4, 4, 0]} maxBarSize={22} />
           </BarChart>
         </ResponsiveContainer>
