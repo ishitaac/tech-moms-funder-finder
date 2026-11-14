@@ -17,3 +17,10 @@ Format: **Item** — context · options · recommendation (if any).
 11. **Production DB** — pick Neon or Supabase (free tier) for the Vercel deploy and run `db:push` + `ingest load` against it.
 8. **Repo lives inside OneDrive** — `node_modules` and `.next` under OneDrive sync can be slow or lock files on Windows. Consider excluding the folder from sync or cloning outside OneDrive.
 12. **Federal grants are mostly poor fits** (2026-11-13, Claude) — after filtering, Grants.gov yields ~10–15 nonprofit-eligible workforce listings, almost all with $150K+ awards (far above the $5K–$30K sweet spot). They will mostly band as "Long shot", which matches Robbyn's experience (1 national win in 10–20). Consider demoing federal as "watch list" and leaning on Utah state + pass-through + foundations for the ranked list.
+13. **Score calibration — please review** (2026-11-13, Claude). Checked against the 4 foundations whose 990-PFs show grants to Tech-Moms (Sorenson Legacy, Kahlert, Ashton Family, Larry H. Miller & Gail Miller). Changes made:
+    - Mission & women now use the *share* of past grants that match (big national funders were winning on keyword volume).
+    - Geography: Utah dollars dominate; Mountain West without Utah is partial credit (0.4).
+    - "Boys & Girls Club" no longer counts as a women/girls signal.
+    - A foundation that has granted to Tech-Moms is never gated out (Kahlert and LHM tick "preselected only" yet fund Tech-Moms) and is labelled "Past funder".
+    - Bands recalibrated from PRD 75/55 to **Strong ≥ 50 / Worth a look ≥ 35** — without the AI mission read, the 99th percentile score is 45. Known funders rank 26–43 of ~2,000 (top 2%) and band "Worth a look". Revisit once AI is on (mission scores will rise).
+    - **Decision needed:** should "preselected organizations only" exclude funders at all? Two real Tech-Moms funders tick it. Option: show them as "Invitation only — needs warm intro" instead of excluding.

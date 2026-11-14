@@ -6,6 +6,7 @@ import {
   MISSION_KEYWORD_SATURATION,
   MISSION_MIX,
   WOMEN_KEYWORDS,
+  WOMEN_FALSE_POSITIVES,
   WOMEN_KEYWORD_SATURATION,
 } from "@/config/scoring";
 
@@ -26,16 +27,49 @@ export function keywordScore(
 /** Mission = keyword share + AI anchored read (0-3). Uses whichever is available. */
 export function missionScore(text: string | null, aiRating: number | null) {
   const kw = keywordScore(text, MISSION_KEYWORDS, MISSION_KEYWORD_SATURATION);
-  const ai = aiRating === null ? null : Math.min(1, Math.max(0, aiRating / AI_SCALE_MAX));
-  let score: number | null = null;
-  if (kw.score !== null && ai !== null) score = MISSION_MIX.keyword * kw.score + MISSION_MIX.ai * ai;
-  else score = kw.score ?? ai;
-  return { score, hits: kw.hits, aiRating };
+  return { score: combineMission(kw.score, aiRating), hits: kw.hits, aiRating };
 }
 
+/** Mixes a keyword score (0-1) with the AI anchored read (0-3); uses whichever exists. */
+export function combineMission(keyword: number | null, aiRating: number | null): number | null {
+  const ai = aiRating === null ? null : Math.min(1, Math.max(0, aiRating / AI_SCALE_MAX));
+  if (keyword !== null && ai !== null) return MISSION_MIX.keyword * keyword + MISSION_MIX.ai * ai;
+  return keyword ?? ai;
+}
+
+const stripFalsePositives = (keywords: readonly string[], text: string) =>
+  keywords === WOMEN_KEYWORDS ? text.replace(WOMEN_FALSE_POSITIVES, " ") : text;
+
 export function womenScore(purpose: string | null, granteeNames: string[]) {
-  const text = [purpose ?? "", ...granteeNames].join(" \n ");
+  const text = stripFalsePositives(WOMEN_KEYWORDS, [purpose ?? "", ...granteeNames].join(" \n "));
   return keywordScore(text, WOMEN_KEYWORDS, WOMEN_KEYWORD_SATURATION);
+}
+
+/**
+ * Share of past grants whose recipient name or purpose matches any keyword.
+ * `fullShare` = share that earns full credit.
+ */
+export function grantShareScore(
+  grants: { recipientName: string; purpose: string | null }[],
+  keywords: readonly string[],
+  fullShare: number,
+): { score: number | null; share: number; matched: number; hits: string[]; example: string | null } {
+  if (grants.length === 0) return { score: null, share: 0, matched: 0, hits: [], example: null };
+  const hitSet = new Set<string>();
+  let matched = 0;
+  let example: string | null = null;
+  for (const g of grants) {
+    const text = stripFalsePositives(keywords, `${g.recipientName} \n ${g.purpose ?? ""}`);
+    const { hits } = keywordScore(text, keywords, 1);
+    if (hits.length === 0) continue;
+    matched++;
+    hits.forEach((h) => hitSet.add(h));
+    if (!example && keywordScore(stripFalsePositives(keywords, g.recipientName), keywords, 1).hits.length) {
+      example = g.recipientName;
+    }
+  }
+  const share = matched / grants.length;
+  return { score: Math.min(1, share / fullShare), share, matched, hits: [...hitSet], example };
 }
 
 export interface GeoGrant {
@@ -55,9 +89,9 @@ export function geographyScore(grants: GeoGrant[], funderState?: string | null) 
     valid.filter((g) => pred(g.state!.toUpperCase())).reduce((s, g) => s + g.amount!, 0);
   const utahShare = sum((s) => s === GEOGRAPHY.homeState) / total;
   const regionShare = sum((s) => (GEOGRAPHY.region as readonly string[]).includes(s)) / total;
-  const effective = utahShare + regionShare * GEOGRAPHY.regionCredit;
+  const effective = utahShare / GEOGRAPHY.homeShareForFullCredit + regionShare * GEOGRAPHY.regionCredit;
   return {
-    score: Math.min(1, effective / GEOGRAPHY.homeShareForFullCredit),
+    score: Math.min(1, effective),
     utahShare,
     regionShare,
   };

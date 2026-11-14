@@ -24,8 +24,9 @@ export const COMPONENT_LABELS: Record<ComponentKey, string> = {
 };
 
 export const BANDS = {
-  strongMin: 75,
-  worthMin: 55,
+  // Calibrated 2026-11-13 against known Tech-Moms funders (PRD said 75/55, provisional). See BACKLOG.
+  strongMin: 50,
+  worthMin: 35,
   /** "Strong" also requires at least this many components with real evidence. */
   strongMinEvidence: 3,
 } as const;
@@ -74,12 +75,23 @@ export const WOMEN_KEYWORDS = [
   "single parents",
 ];
 export const WOMEN_KEYWORD_SATURATION = 2;
+/** Text that looks like a women keyword but isn't a women/girls program. */
+export const WOMEN_FALSE_POSITIVES = /\bboys\s*(?:&|and)\s*girls\b/gi;
+
+/**
+ * For foundations, mission and women are scored on the SHARE of past grants that match,
+ * so large generalist funders with thousands of grants don't win on volume.
+ * Share at or above these values earns full credit.
+ */
+export const MISSION_GRANT_SHARE_FULL = 0.15;
+export const WOMEN_GRANT_SHARE_FULL = 0.1;
 
 export const GEOGRAPHY = {
   homeState: "UT",
   /** Mountain West, partial credit. */
   region: ["ID", "NV", "AZ", "CO", "WY", "MT", "NM"],
-  regionCredit: 0.5,
+  /** Credit per unit of Mountain West dollar share (no Utah) — partial by design. */
+  regionCredit: 0.4,
   /** Utah dollar share at or above this earns full credit. */
   homeShareForFullCredit: 0.5,
 } as const;

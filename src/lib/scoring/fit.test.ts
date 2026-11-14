@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_WEIGHTS } from "@/config/scoring";
+import { BANDS, DEFAULT_WEIGHTS } from "@/config/scoring";
 import { computeFit } from "./fit";
 import type { ComponentResult, FitInput } from "./types";
 
@@ -53,9 +53,11 @@ describe("computeFit", () => {
     expect(result.confidence).toBe("medium");
   });
 
-  test("band thresholds: 55 is Worth a look, 54 is Long shot", () => {
-    expect(computeFit(input({ mission: 0.55, women: 0.55, geography: 0.55, history: 0.55, access: 0.55 }), DEFAULT_WEIGHTS).band).toBe("Worth a look");
-    expect(computeFit(input({ mission: 0.54, women: 0.54, geography: 0.54, history: 0.54, access: 0.54 }), DEFAULT_WEIGHTS).band).toBe("Long shot");
+  test("band thresholds come from config (worthMin is Worth a look, one below is Long shot)", () => {
+    const at = BANDS.worthMin / 100;
+    const below = (BANDS.worthMin - 1) / 100;
+    expect(computeFit(input({ mission: at, women: at, geography: at, history: at, access: at }), DEFAULT_WEIGHTS).band).toBe("Worth a look");
+    expect(computeFit(input({ mission: below, women: below, geography: below, history: below, access: below }), DEFAULT_WEIGHTS).band).toBe("Long shot");
   });
 
   test("no evidence at all yields null score and low confidence", () => {

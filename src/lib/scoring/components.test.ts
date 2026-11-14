@@ -1,8 +1,10 @@
 import { describe, expect, test } from "vitest";
+import { MISSION_KEYWORDS, WOMEN_KEYWORDS } from "@/config/scoring";
 import {
   accessScore,
   geographyScore,
   govGeographyScore,
+  grantShareScore,
   historyScore,
   keywordScore,
   missionScore,
@@ -46,6 +48,29 @@ describe("missionScore", () => {
   });
 });
 
+describe("grantShareScore", () => {
+  const grant = (recipientName: string, purpose: string | null = null) => ({ recipientName, purpose });
+
+  test("scores the share of grants matching, not raw keyword hits", () => {
+    // 1 of 100 grants mentions workforce: a big generalist funder should score low
+    const many = [grant("Workforce Alliance", "workforce training"), ...Array.from({ length: 99 }, () => grant("Opera", "arts"))];
+    expect(grantShareScore(many, MISSION_KEYWORDS, 0.15).score!).toBeLessThan(0.1);
+    // 3 of 10 grants: full credit at a 15% share
+    const focused = [...Array.from({ length: 3 }, () => grant("X", "workforce development")), ...Array.from({ length: 7 }, () => grant("Y", "food"))];
+    expect(grantShareScore(focused, MISSION_KEYWORDS, 0.15).score).toBe(1);
+  });
+
+  test("ignores 'Boys & Girls Club' for the women component", () => {
+    const r = grantShareScore([grant("Boys & Girls Clubs of Utah", "youth"), grant("BOYS AND GIRLS CLUB", null)], WOMEN_KEYWORDS, 0.1);
+    expect(r.score).toBe(0);
+  });
+
+  test("returns example matching grantee and null for no grants", () => {
+    expect(grantShareScore([grant("Women Tech Council", "general")], WOMEN_KEYWORDS, 0.1).example).toBe("Women Tech Council");
+    expect(grantShareScore([], WOMEN_KEYWORDS, 0.1).score).toBeNull();
+  });
+});
+
 describe("womenScore", () => {
   test("credits keyword hits in purpose or past grantee names", () => {
     const r = womenScore("General charitable purposes", ["Utah Women in Tech", "Girls Who Code"]);
@@ -67,13 +92,19 @@ describe("geographyScore", () => {
     expect(r.utahShare).toBeCloseTo(0.6);
   });
 
-  test("partial credit for Mountain West dollars", () => {
+  test("Mountain West dollars earn only partial credit without Utah", () => {
     const r = geographyScore([
-      { state: "CO", amount: 50_000 },
-      { state: "NY", amount: 50_000 },
+      { state: "CO", amount: 97_000 },
+      { state: "NY", amount: 3_000 },
     ]);
-    // 0.5 regional share * 0.5 credit / 0.5 full-credit threshold = 0.5
-    expect(r.score).toBeCloseTo(0.5);
+    // 0.97 regional share * 0.4 regional credit
+    expect(r.score).toBeCloseTo(0.388);
+  });
+
+  test("Utah share dominates: 25% Utah beats 100% Mountain West", () => {
+    const utah = geographyScore([{ state: "UT", amount: 25 }, { state: "NY", amount: 75 }]).score!;
+    const region = geographyScore([{ state: "CO", amount: 100 }]).score!;
+    expect(utah).toBeGreaterThan(region);
   });
 
   test("null with no grants", () => {

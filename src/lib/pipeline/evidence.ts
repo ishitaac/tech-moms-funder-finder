@@ -2,11 +2,20 @@
  * Turns stored facts into fit-score inputs with human-readable evidence.
  * Pure functions: no DB, no AI. Every evidence string cites real numbers or names.
  */
-import { GEOGRAPHY, WOMEN_KEYWORDS } from "@/config/scoring";
+import {
+  GEOGRAPHY,
+  MISSION_GRANT_SHARE_FULL,
+  MISSION_KEYWORDS,
+  MISSION_KEYWORD_SATURATION,
+  WOMEN_GRANT_SHARE_FULL,
+  WOMEN_KEYWORDS,
+} from "@/config/scoring";
 import {
   accessScore,
+  combineMission,
   geographyScore,
   govGeographyScore,
+  grantShareScore,
   historyScore,
   keywordScore,
   missionScore,
@@ -60,6 +69,7 @@ function accessComponent(
   acceptsUnsolicited: boolean | null,
   warmIntro: boolean | null,
   fallbackUrl: string | null,
+  isPastFunder = false,
 ): ComponentResult {
   const r = accessScore({
     openCall: openCall ? true : null,
@@ -73,32 +83,38 @@ function accessComponent(
     notes.push(`Open call${route}${openCall.deadline ? ` due ${openCall.deadline}` : ""}`);
   }
   if (acceptsUnsolicited) notes.push("Accepts unsolicited requests");
-  if (warmIntro) notes.push("family foundation (warm-intro path)");
+  if (isPastFunder) notes.push("Past funder — existing relationship");
+  else if (warmIntro) notes.push("family foundation (warm-intro path)");
   return comp(r.score, notes.join("; ") || "No open call or unsolicited route found", openCall?.sourceUrl ?? fallbackUrl);
 }
+
+const quoteList = (hits: string[]) => hits.slice(0, MAX_KEYWORDS_SHOWN).map((h) => `"${h}"`).join(", ");
+const SELF = normalizeOrgName("Tech-Moms");
 
 export function foundationFitInput(f: FoundationFacts): FitInput {
   const src = f.filing?.sourceUrl ?? null;
   const ty = f.filing ? ` (TY${f.filing.taxYear})` : "";
-  const purposes = f.grants.map((g) => g.purpose ?? "").join(" \n ");
-  const missionText = [purposes, f.websiteText ?? ""].join(" \n ").trim() || null;
+  const isPastFunder = f.grants.some((g) => normalizeOrgName(g.recipientName) === SELF);
 
-  // Mission
-  const m = missionScore(missionText, f.missionAiRating);
-  const missionEvidence = m.hits.length
-    ? `Past grants mention ${m.hits.slice(0, MAX_KEYWORDS_SHOWN).map((h) => `"${h}"`).join(", ")}`
-    : f.missionAiRating !== null
-      ? `Stated purpose rated ${f.missionAiRating}/3 for mission fit`
-      : "No mission keywords in grant purposes";
+  // Mission: share of past grants that match (not raw hits), or website keywords; mixed with the AI read.
+  const share = grantShareScore(f.grants, MISSION_KEYWORDS, MISSION_GRANT_SHARE_FULL);
+  const site = keywordScore(f.websiteText, MISSION_KEYWORDS, MISSION_KEYWORD_SATURATION);
+  const keywordPart = share.score === null ? site.score : site.score === null ? share.score : Math.max(share.score, site.score);
+  const missionValue = combineMission(keywordPart, f.missionAiRating);
+  const missionEvidence = share.matched
+    ? `${pct(share.share)} of past grants mention ${quoteList(share.hits)}`
+    : site.hits.length
+      ? `Website mentions ${quoteList(site.hits)}`
+      : f.missionAiRating !== null
+        ? `Stated purpose rated ${f.missionAiRating}/3 for mission fit`
+        : "No mission keywords in past grants";
 
-  // Women & girls
-  const names = f.grants.map((g) => g.recipientName);
-  const w = womenScore(purposes || null, names);
-  const exampleGrantee = names.find((n) => keywordScore(n, WOMEN_KEYWORDS, 1).hits.length > 0);
-  const womenEvidence = exampleGrantee
-    ? `Funded women-focused grantees, e.g. ${exampleGrantee}`
-    : w.hits.length
-      ? `Grant purposes mention ${w.hits.slice(0, MAX_KEYWORDS_SHOWN).map((h) => `"${h}"`).join(", ")}`
+  // Women & girls: share of grants to women/girls programs.
+  const w = grantShareScore(f.grants, WOMEN_KEYWORDS, WOMEN_GRANT_SHARE_FULL);
+  const womenEvidence = w.example
+    ? `Funded women-focused grantees, e.g. ${w.example}`
+    : w.matched
+      ? `${pct(w.share)} of grants mention ${quoteList(w.hits)}`
       : "No women/girls focus found in grants";
 
   // Geography
@@ -120,23 +136,26 @@ export function foundationFitInput(f: FoundationFacts): FitInput {
   const peerHits = f.grants.filter((x) => f.peerNames.has(normalizeOrgName(x.recipientName)));
   const h = historyScore({ grantAmounts: amounts, totalGiving: f.filing?.totalGiving ?? null, peerGrantCount: peerHits.length });
   const historyNotes: string[] = [];
+  if (isPastFunder) historyNotes.push("Has funded Tech-Moms before");
   if (amounts.length) historyNotes.push(`Typical grant ${usd(median(amounts))}`);
   if (f.filing?.totalGiving) historyNotes.push(`gave ${usd(f.filing.totalGiving)} in TY${f.filing.taxYear}`);
   if (peerHits.length) historyNotes.push(`funded peer ${[...new Set(peerHits.map((p) => p.recipientName))].slice(0, 2).join(", ")}`);
 
-  const warmIntro = f.funder.type === "family_foundation" ? true : null;
+  const warmIntro = isPastFunder || f.funder.type === "family_foundation" ? true : null;
+  const access = accessComponent(f.openCall, f.funder.acceptsUnsolicited, warmIntro, src, isPastFunder);
 
   return {
     components: {
-      mission: comp(m.score, missionEvidence, f.openCall?.sourceUrl ?? src),
+      mission: comp(missionValue, missionEvidence, f.openCall?.sourceUrl ?? src),
       women: comp(w.score, womenEvidence, src),
       geography: comp(g.score, geoEvidence, src),
       history: comp(h.score, historyNotes.join("; ") || null, src),
-      access: accessComponent(f.openCall, f.funder.acceptsUnsolicited, warmIntro, src),
+      access,
     },
+    // A past Tech-Moms funder is proven to fund us: never gate it out (even if "preselected only").
     // No 990 on record (e.g. a corporate giving program): gates can't be judged, so don't exclude;
     // the score relies on website evidence and confidence stays low.
-    gates: f.filing
+    gates: f.filing && !isPastFunder
       ? foundationGates({
           latestGrantYear: f.grants.length ? f.filing.taxYear : null,
           latestAvailableYear: f.latestAvailableYear,

@@ -53,6 +53,21 @@ describe("foundationFitInput", () => {
     expect(r.gates.find((g) => g.id === "open_to_asks")!.passed).toBe(false);
   });
 
+  test("a past Tech-Moms funder skips gates and says so in history evidence", () => {
+    const r = foundationFitInput({
+      ...base,
+      funder: { ...base.funder, acceptsUnsolicited: false },
+      grants: [...base.grants, { recipientName: "TECH-MOMS", recipientState: "UT", amount: 10_000, purpose: "General" }],
+    });
+    expect(r.gates).toEqual([]);
+    expect(r.components.history.evidence).toContain("Has funded Tech-Moms");
+    expect(r.components.access.evidence).toContain("Past funder");
+  });
+
+  test("mission evidence reports the share of grants that match", () => {
+    expect(input.components.mission.evidence).toMatch(/^33% of past grants mention/);
+  });
+
   test("no filing at all (corporate program): no gates, not excluded", () => {
     const r = foundationFitInput({ ...base, filing: null, grants: [] });
     expect(r.gates).toEqual([]);
