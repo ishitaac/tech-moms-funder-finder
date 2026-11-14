@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { CloseIcon } from "@/components/icons";
 
 const KEY = "ff-trust-banner-dismissed";
 const EVENT = "ff-trust-banner";
@@ -22,7 +23,7 @@ function subscribe(cb: () => void) {
   };
 }
 
-/** First-screen privacy and AI statement (PRD non-functional: Privacy). */
+/** First-screen privacy and AI statement (PRD non-functional: Privacy) as one dismissible line. */
 export function TrustBanner() {
   // Server snapshot = hidden, so SSR and first client render agree; it appears after hydration if not dismissed.
   const dismissed = useSyncExternalStore(subscribe, read, () => true);
@@ -38,17 +39,15 @@ export function TrustBanner() {
   };
 
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-teal/30 bg-teal-soft px-4 py-3 text-sm">
-      <div className="space-y-1">
-        <p className="font-semibold text-ink">A research assistant you control</p>
-        <p className="text-muted">
-          <strong className="text-ink">Public data only</strong> (IRS 990 filings, Grants.gov, Utah state listings, funder websites) ·{" "}
-          <strong className="text-ink">no personal data</strong> about donors, students or staff · AI reads, extracts and explains;{" "}
-          <strong className="text-ink">you make every decision</strong>. Every score links to its source. The AI provider does not train on our data.
-        </p>
-      </div>
-      <button onClick={dismiss} className="rounded-md px-2 py-1 text-xs font-semibold text-brand hover:bg-white">
-        Got it
+    <div className="flex items-center gap-3 rounded-full bg-teal-tint px-5 py-2.5 text-sm text-plum" role="region" aria-label="About this data">
+      <p className="min-w-0 flex-1">
+        <strong className="font-medium">Public data only · no personal data · AI assists, you decide.</strong>{" "}
+        <a href="/settings#sources" className="whitespace-nowrap underline underline-offset-2">
+          Learn more
+        </a>
+      </p>
+      <button type="button" onClick={dismiss} aria-label="Dismiss this message" className="shrink-0 rounded-full p-1.5 text-plum hover:bg-white">
+        <CloseIcon className="h-4 w-4" />
       </button>
     </div>
   );
