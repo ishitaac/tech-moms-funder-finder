@@ -10,7 +10,7 @@ import { isAiConfigured, modelId } from "@/lib/ai/provider";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { RefreshButton, ClearSampleButton } from "@/components/settings/settings-actions";
 import { WeightSliders } from "@/components/settings/weight-sliders";
-import { PageHeader, SourceLink } from "@/components/ui";
+import { Card, PageHeader, SourceLink } from "@/components/ui";
 import type { SourceError } from "@/lib/sources/types";
 
 const USAGE_ROWS = 8;
@@ -23,12 +23,12 @@ const SOURCES = [
   { id: "website", label: "Funder websites", url: null, note: "Shortlisted funders only; read by AI when changed" },
 ];
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+function Panel({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="rounded-xl border border-line bg-white p-5">
-      <h2 className="mb-3 text-lg font-medium text-ink">{title}</h2>
+    <Card id={id} className="scroll-mt-6">
+      <h2 className="mb-4 text-lg font-medium text-plum">{title}</h2>
       {children}
-    </section>
+    </Card>
   );
 }
 
@@ -43,7 +43,7 @@ async function Settings() {
   const monthTokens = refreshes.filter((r) => format(r.startedAt, "yyyy-MM") === monthKey).reduce((s, r) => s + r.tokensIn + r.tokensOut, 0);
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Panel title="Notifications">
         <SettingsForm
           initial={{
@@ -58,10 +58,10 @@ async function Settings() {
       <Panel title="Refresh">
         <p className="text-sm text-muted">
           The list refreshes automatically every 14 days. Last successful refresh:{" "}
-          <strong className="text-ink">{last ? format(last.startedAt, "MMM d, yyyy h:mm a") : "never"}</strong>.
+          <strong className="text-plum">{last ? format(last.startedAt, "MMM d, yyyy h:mm a") : "never"}</strong>.
         </p>
         <p className="mt-1 text-sm text-muted">
-          AI: {isAiConfigured() ? <>on — {modelId("extract")} (reading), {modelId("explain")} (explanations)</> : <strong className="text-rose">off (AI_ENABLED is not true) — scoring uses public filings only</strong>}
+          AI: {isAiConfigured() ? <>on — {modelId("extract")} (reading), {modelId("explain")} (explanations)</> : <strong className="text-plum">off (AI_ENABLED is not true) — scoring uses public filings only</strong>}
         </p>
         <div className="mt-3"><RefreshButton /></div>
         {lastErrors.length > 0 && (
@@ -74,7 +74,7 @@ async function Settings() {
 
       <Panel title="AI usage & cost">
         <p className="mb-3 text-sm text-muted">
-          This month: <strong className="text-ink">{monthTokens.toLocaleString()} tokens</strong>, est. <strong className="text-ink">${monthCost.toFixed(2)}</strong>. AI only reads shortlisted funders whose pages changed; everything else is cached.
+          This month: <strong className="text-plum">{monthTokens.toLocaleString()} tokens</strong>, est. <strong className="text-plum">${monthCost.toFixed(2)}</strong>. AI only reads shortlisted funders whose pages changed; everything else is cached.
         </p>
         <table className="w-full text-left text-xs">
           <thead className="uppercase tracking-wide text-muted">
@@ -83,7 +83,7 @@ async function Settings() {
           <tbody className="divide-y divide-line tabular-nums">
             {refreshes.map((r) => (
               <tr key={r.id} title={r.message ?? undefined}>
-                <td className="py-1.5">{format(r.startedAt, "MMM d, HH:mm")} {r.status !== "ok" && <span className="text-rose">({r.status})</span>}</td>
+                <td className="py-1.5">{format(r.startedAt, "MMM d, HH:mm")} {r.status !== "ok" && <span className="text-plum">({r.status})</span>}</td>
                 <td>{r.fundersProcessed}</td>
                 <td>{r.fundersSkippedCached}</td>
                 <td>{(r.tokensIn + r.tokensOut).toLocaleString()}</td>
@@ -95,14 +95,14 @@ async function Settings() {
         <p className="mt-2 text-xs text-muted">Token cap per refresh: {(settings?.tokenCapPerRefresh ?? 2_000_000).toLocaleString()}. Costs are estimates from list prices.</p>
       </Panel>
 
-      <Panel title="Data sources">
+      <Panel title="Data sources" id="sources">
         <ul className="space-y-2 text-sm">
           {SOURCES.map((s) => {
             const errs = lastErrors.filter((e) => e.source === s.id).length;
             return (
               <li key={s.id} className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-medium text-ink">{s.label}</p>
+                  <p className="font-medium text-plum">{s.label}</p>
                   <p className="text-xs text-muted">{s.note}{errs ? ` · ${errs} issue${errs > 1 ? "s" : ""} last refresh` : ""}</p>
                 </div>
                 {s.url && <SourceLink href={s.url}>Visit</SourceLink>}
@@ -135,7 +135,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" subtitle="Everything on one screen: alerts, refresh, AI usage, sources." />
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-white" />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-[16px] bg-card" />}>
         <Settings />
       </Suspense>
     </>

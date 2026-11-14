@@ -29,12 +29,12 @@ export function Filters({ filters, excludedCount }: { filters: F; excludedCount:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const select = "rounded-md border border-line bg-white px-2.5 py-1.5 text-sm text-ink";
+  const select = "rounded-full border border-line bg-card px-4 py-2 text-sm text-plum";
   const tab = (active: boolean) =>
-    `rounded-md px-3 py-1.5 text-sm font-medium ${active ? "bg-brand text-white" : "text-muted hover:bg-white hover:text-ink"}`;
+    `rounded-full px-4 py-2 text-sm font-medium ${active ? "bg-plum text-white" : "text-plum hover:bg-plum-tint"}`;
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 rounded-xl border border-line bg-canvas p-2 ${pending ? "opacity-70" : ""}`}>
+    <div className={`flex flex-wrap items-center gap-2 rounded-[16px] border border-line bg-card p-3 shadow-card ${pending ? "opacity-70" : ""}`}>
       <div className="flex gap-1" role="tablist" aria-label="List view">
         <button role="tab" aria-selected={filters.view === "shortlist"} className={tab(filters.view === "shortlist")} onClick={() => set("view", null)}>
           Top matches
@@ -61,8 +61,8 @@ export function Filters({ filters, excludedCount }: { filters: F; excludedCount:
           <option key={b}>{b}</option>
         ))}
       </select>
-      <label className="flex items-center gap-1.5 px-1 text-sm text-ink">
-        <input type="checkbox" checked={filters.openOnly} onChange={(e) => set("open", e.target.checked ? "1" : null)} className="accent-teal" />
+      <label className="flex items-center gap-2 px-2 text-sm text-plum">
+        <input type="checkbox" checked={filters.openOnly} onChange={(e) => set("open", e.target.checked ? "1" : null)} className="h-4 w-4 accent-plum" />
         Open calls only
       </label>
       <input
@@ -71,7 +71,7 @@ export function Filters({ filters, excludedCount }: { filters: F; excludedCount:
         aria-label="Search funders"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        className="ml-auto min-w-48 flex-1 rounded-md border border-line bg-white px-3 py-1.5 text-sm sm:flex-none"
+        className="ml-auto min-w-48 flex-1 rounded-full border border-line bg-card px-4 py-2 text-sm placeholder:text-muted sm:flex-none"
       />
     </div>
   );

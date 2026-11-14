@@ -15,7 +15,7 @@ export default function PipelinePage() {
         title="Funding pipeline"
         subtitle="Approved matches land here as prospects. Drag a card (or use its stage menu) to move it. Committed = awarded; received = payments recorded."
       />
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-white" />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-[16px] bg-card" />}>
         <Board />
       </Suspense>
     </>

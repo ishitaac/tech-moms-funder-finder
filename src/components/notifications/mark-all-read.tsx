@@ -9,7 +9,7 @@ export function MarkAllRead() {
     <button
       disabled={pending}
       onClick={() => start(async () => void (await markNotificationsRead()))}
-      className="rounded-md border border-line bg-white px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-soft disabled:opacity-60"
+      className="rounded-full border border-line bg-card px-3 py-1.5 text-xs font-semibold text-plum hover:bg-plum-tint disabled:opacity-60"
     >
       Mark all as read
     </button>

@@ -24,15 +24,15 @@ export function WeightSliders({ initial, defaults }: { initial: Weights; default
       {COMPONENT_KEYS.map((k) => (
         <label key={k} className="block">
           <span className="flex justify-between">
-            <span className="font-medium text-ink">{COMPONENT_LABELS[k]}</span>
+            <span className="font-medium text-plum">{COMPONENT_LABELS[k]}</span>
             <span className="tabular-nums text-muted">{total ? Math.round((w[k] / total) * 100) : 0}%</span>
           </span>
-          <input type="range" min={0} max={1} step={0.05} value={w[k]} onChange={(e) => setW({ ...w, [k]: Number(e.target.value) })} className="w-full accent-brand" />
+          <input type="range" min={0} max={1} step={0.05} value={w[k]} onChange={(e) => setW({ ...w, [k]: Number(e.target.value) })} className="w-full accent-plum" />
         </label>
       ))}
       <div className="flex flex-wrap items-center gap-2">
-        <button disabled={pending} onClick={() => apply(w)} className="rounded-md bg-brand px-4 py-2 font-semibold text-white disabled:opacity-60">Apply & re-rank</button>
-        <button disabled={pending} onClick={() => apply(null)} className="rounded-md border border-line px-3 py-2 font-semibold text-ink disabled:opacity-60">Reset to defaults</button>
+        <button disabled={pending} onClick={() => apply(w)} className="rounded-full bg-plum px-4 py-2 font-semibold text-white disabled:opacity-60">Apply & re-rank</button>
+        <button disabled={pending} onClick={() => apply(null)} className="rounded-full border border-line px-3 py-2 font-semibold text-plum disabled:opacity-60">Reset to defaults</button>
         {msg && <span className="text-muted" role="status">{msg}</span>}
       </div>
       <p className="text-xs text-muted">Percentages are each weight&apos;s share of the total. Re-ranking uses saved evidence — no AI calls.</p>
