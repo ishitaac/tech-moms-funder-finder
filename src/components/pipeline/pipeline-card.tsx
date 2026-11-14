@@ -67,12 +67,13 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
       if (!popRef.current?.contains(t) && !btnRef.current?.contains(t)) setEditing(false);
     };
     const onResize = () => setEditing(false);
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("pointerdown", onDown);
+    // Capture phase: the popover and card controls stop propagation (to protect drag), which would otherwise hide these events.
+    document.addEventListener("keydown", onKey, true);
+    document.addEventListener("pointerdown", onDown, true);
     window.addEventListener("resize", onResize);
     return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey, true);
+      document.removeEventListener("pointerdown", onDown, true);
       window.removeEventListener("resize", onResize);
     };
   }, [editing]);
