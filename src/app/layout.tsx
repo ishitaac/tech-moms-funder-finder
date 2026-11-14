@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Nunito_Sans, Oswald } from "next/font/google";
+import { Figtree } from "next/font/google";
 import { Suspense } from "react";
 import { AppNav } from "@/components/app-nav";
 import "./globals.css";
 
-const body = Nunito_Sans({ variable: "--font-body", subsets: ["latin"] });
-const heading = Oswald({ variable: "--font-heading", subsets: ["latin"], weight: ["500", "600"] });
+const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Funder Finder · Tech-Moms",
@@ -14,15 +13,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${body.variable} ${heading.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans">
-        <Suspense fallback={<div className="h-16 border-b border-line bg-white" />}>
+    <html lang="en" className={`${figtree.variable} h-full antialiased`}>
+      <body className="min-h-full font-sans lg:flex">
+        <Suspense fallback={<div className="h-14 border-b border-line bg-card lg:h-screen lg:w-64 lg:border-r" />}>
           <AppNav />
         </Suspense>
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">{children}</main>
-        <footer className="border-t border-line bg-white px-6 py-3 text-center text-xs text-muted">
-          Public data only · No personal data · AI finds, extracts and explains — you decide.
-        </footer>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
+          <footer className="px-6 py-6 text-center text-xs text-muted">
+            Public data only · No personal data · AI finds, extracts and explains — you decide.
+          </footer>
+        </div>
       </body>
     </html>
   );

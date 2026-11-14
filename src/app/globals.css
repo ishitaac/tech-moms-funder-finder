@@ -1,44 +1,135 @@
 @import "tailwindcss";
 
-/* Tech-Moms palette (from tech-moms.org): deep blue, plum, rose, teal. */
-@theme {
-  --color-brand: #2b5672;
-  --color-brand-dark: #1e3f55;
-  --color-brand-soft: #e8eff4;
-  --color-plum: #491e3d;
-  --color-rose: #bc697c;
-  --color-rose-soft: #f6e9ec;
-  --color-teal: #06b0b6;
-  --color-teal-soft: #e0f6f6;
-  --color-ink: #24292f;
-  --color-muted: #5b6470;
-  --color-line: #e2e5e9;
-  --color-canvas: #f7f8fa;
+/*
+ * Tech-Moms design tokens — the ONE place brand values live.
+ * Contrast (WCAG AA): plum on white 13.8:1, plum on teal 6.2:1 (5.2:1 on logo teal), plum on rose tint ~12:1, muted on white 7:1.
+ * Teal (#00b0b5) and rose (#be677c) are too light for small text on white: use them as fills,
+ * borders, dots and chart colors, with plum text on top. Never white text on teal.
+ */
+:root {
+  --plum: #4b1b3c;
+  --teal: #40c4c8;
+  --teal-logo: #00b0b5;
+  --rose: #be677c;
 
-  --color-strong: #1f7a4d;
-  --color-strong-soft: #e3f3ea;
-  --color-worth: #9d6200;
-  --color-worth-soft: #fbf0dc;
-  --color-long: #6b7280;
-  --color-long-soft: #eef0f2;
+  --plum-tint: #f7f1f5;
+  --teal-tint: #e9f8f9;
+  --rose-tint: #f8ecef;
 
-  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+  --page: #fbf8fa; /* very light plum-tinted page background */
+  --card: #ffffff;
+  --border: #eadfe6; /* soft plum-tinted 1px border */
+  --muted: #6b5262; /* secondary text, 7:1 on white */
+
+  --radius-card: 16px;
+  --shadow-card: 0 1px 2px rgb(75 27 60 / 0.04), 0 2px 8px rgb(75 27 60 / 0.05);
+}
+
+@theme inline {
+  --color-plum: var(--plum);
+  --color-teal: var(--teal);
+  --color-teal-logo: var(--teal-logo);
+  --color-rose: var(--rose);
+  --color-plum-tint: var(--plum-tint);
+  --color-teal-tint: var(--teal-tint);
+  --color-rose-tint: var(--rose-tint);
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-line: var(--border);
+  --color-muted: var(--muted);
+
+  /* Legacy names kept so existing components keep working while they are restyled. */
+  --color-ink: var(--plum);
+  --color-canvas: var(--page);
+  --color-brand: var(--plum);
+  --color-brand-dark: var(--plum);
+  --color-brand-soft: var(--plum-tint);
+  --color-rose-soft: var(--rose-tint);
+  --color-teal-soft: var(--teal-tint);
+  --color-strong: var(--plum);
+  --color-strong-soft: var(--teal-tint);
+  --color-worth: var(--plum);
+  --color-worth-soft: var(--rose-tint);
+  --color-long: var(--muted);
+  --color-long-soft: var(--plum-tint);
+
+  --radius-card: var(--radius-card);
+  --shadow-card: var(--shadow-card);
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--color-canvas);
-  color: var(--color-ink);
+  background: var(--page);
+  color: var(--plum);
+  font-family: var(--font-sans);
 }
 
+/* One family, regular weight headings in plum. */
 h1,
 h2,
 h3 {
-  font-family: var(--font-display);
-  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--plum);
+  letter-spacing: -0.01em;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-teal);
+  outline: 3px solid var(--plum);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--teal);
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Pipeline / board tokens (shared theme; only the Funding pipeline page uses them for now).
+ * Scale: page title 28 · column title 16 · card name 15 · body 14 · meta 12 (floor).
+ * Spacing follows an 8px grid (8, 16, 24, 32, 40).
+ */
+@theme {
+  --text-title: 1.75rem;
+  --text-title--line-height: 2.25rem;
+  --text-col: 1rem;
+  --text-col--line-height: 1.5rem;
+  --text-cardname: 0.9375rem;
+  --text-cardname--line-height: 1.375rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1rem;
+
+  --radius-card-sm: 12px;
+  --radius-pill: 9999px;
+  --shadow-card-hover: 0 4px 16px rgb(75 27 60 / 0.1);
+}
+
+/* Stage colors: tinted header bar + dot. Text on them is always plum. */
+.stage-prospect {
+  --stage-bg: #f7f1f5;
+  --stage-dot: #4b1b3c;
+}
+.stage-loi {
+  --stage-bg: #e9f8f9;
+  --stage-dot: #40c4c8;
+}
+.stage-submitted {
+  --stage-bg: #f8ecef;
+  --stage-dot: #be677c;
+}
+.stage-awarded {
+  --stage-bg: #d6f2f3;
+  --stage-dot: #00b0b5;
+}
+.stage-declined {
+  --stage-bg: #f3eef1;
+  --stage-dot: #6b5262;
 }
