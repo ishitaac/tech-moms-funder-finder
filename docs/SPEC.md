@@ -150,7 +150,7 @@ Config lives in `src/config/scoring.ts` (weights, keywords, bands, thresholds). 
 
 Keep this checklist current and push after each item so the team can resume from here.
 
-Status as of end of pre-build (2026-11-13). ~100 unit tests passing (`npm test`), typecheck + lint clean.
+Status as of end of pre-build (2026-11-13). 94 unit tests passing (`npm test`), typecheck + lint clean.
 
 - [x] 0. Spec, backlog, Next.js scaffold, private GitHub repo + collaborators
 - [x] 1. DB schema + Postgres (embedded via `npm run db:start`, Docker optional) + Drizzle `db:push` + seed script

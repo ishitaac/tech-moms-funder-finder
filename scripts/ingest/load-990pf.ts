@@ -1,16 +1,20 @@
 /**
  * Loads data/cache/pf-relevant.jsonl (from scan-990pf.ts) into Postgres.
+ * Falls back to the committed snapshot data/pf-relevant.jsonl.gz (scan of 2026-11-13),
+ * so teammates can load without re-running the ~35 min scan.
  * Idempotent: upserts funders by EIN and replaces that funder's filing/grants/people.
  *
  * Usage: npm run ingest -- load
  */
 import { createReadStream, existsSync } from "node:fs";
 import { createInterface } from "node:readline";
+import { createGunzip } from "node:zlib";
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "../../src/db";
 import type { Parsed990PF } from "../../src/lib/irs/parse990pf";
 
 const INPUT = "data/cache/pf-relevant.jsonl";
+const SNAPSHOT = "data/pf-relevant.jsonl.gz";
 const GRANT_BATCH = 500;
 const FAMILY = /\bFAMILY\b/i;
 const CORPORATE = /\b(CORPORATE|COMPANY|CORP)\b.*\bFOUNDATION\b|\bFOUNDATION\b.*\b(INC\.? CORPORATE)\b/i;
@@ -105,9 +109,14 @@ async function loadOne(row: Row): Promise<void> {
 }
 
 export async function load990pf(): Promise<number> {
-  if (!existsSync(INPUT)) throw new Error(`${INPUT} not found — run scan-990pf.ts first`);
+  let input: NodeJS.ReadableStream;
+  if (existsSync(INPUT)) input = createReadStream(INPUT);
+  else if (existsSync(SNAPSHOT)) {
+    console.log(`Using committed snapshot ${SNAPSHOT}`);
+    input = createReadStream(SNAPSHOT).pipe(createGunzip());
+  } else throw new Error(`${INPUT} not found — run scan-990pf.ts first`);
   let n = 0;
-  const rl = createInterface({ input: createReadStream(INPUT) });
+  const rl = createInterface({ input });
   for await (const line of rl) {
     if (!line.trim()) continue;
     try {
