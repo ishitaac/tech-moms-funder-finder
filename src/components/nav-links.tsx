@@ -6,12 +6,22 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BellIcon, CloseIcon, DashboardIcon, FundersIcon, MenuIcon, PipelineIcon, SettingsIcon } from "./icons";
 
-const LINKS = [
-  { href: "/", label: "Funders", Icon: FundersIcon },
-  { href: "/pipeline", label: "Pipeline", Icon: PipelineIcon },
-  { href: "/dashboard", label: "Dashboard", Icon: DashboardIcon },
-  { href: "/notifications", label: "Notifications", Icon: BellIcon },
-  { href: "/settings", label: "Settings", Icon: SettingsIcon },
+const GROUPS = [
+  { title: "Discover", links: [{ href: "/", label: "Funders", Icon: FundersIcon }] },
+  {
+    title: "Manage",
+    links: [
+      { href: "/pipeline", label: "Pipeline", Icon: PipelineIcon },
+      { href: "/dashboard", label: "Dashboard", Icon: DashboardIcon },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { href: "/notifications", label: "Notifications", Icon: BellIcon },
+      { href: "/settings", label: "Settings", Icon: SettingsIcon },
+    ],
+  },
 ];
 
 /** Left sidebar on desktop; on phones a top bar with a menu button that opens the same list. */
@@ -54,37 +64,43 @@ export function Sidebar({ unread }: { unread: number }) {
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 flex-col border-r border-line bg-card px-4 py-6 lg:sticky lg:top-0 lg:z-auto lg:flex lg:h-screen lg:shrink-0 ${open ? "flex" : "hidden"}`}
       >
-        <Link href="/" className="mb-8 hidden items-center gap-3 px-2 lg:flex">
+        <Link href="/" className="mb-8 hidden items-center gap-3 px-4 lg:flex">
           <Image src="/tech-moms-logo.png" alt="Tech-Moms" width={88} height={52} priority />
         </Link>
-        <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-muted lg:mt-0">Funder Finder</p>
-        <nav id="main-nav" aria-label="Main" className="flex flex-col gap-1">
-          {LINKS.map(({ href, label, Icon }) => {
-            const active = href === "/" ? path === "/" || path === "/excluded" : path.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium transition-colors ${
-                  active ? "bg-plum text-white" : "text-plum hover:bg-plum-tint"
-                }`}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="flex-1">{label}</span>
-                {href === "/notifications" && unread > 0 && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${active ? "bg-card text-plum" : "bg-rose text-plum"}`}
-                    aria-label={`${unread} unread`}
-                  >
-                    {unread}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+        <nav id="main-nav" aria-label="Main" className="flex flex-col gap-6">
+          {GROUPS.map((g) => (
+            <div key={g.title}>
+              <p className="mb-2 px-4 text-xs font-medium tracking-wider text-muted">{g.title.toUpperCase()}</p>
+              <div className="flex flex-col gap-1">
+                {g.links.map(({ href, label, Icon }) => {
+                  const active = href === "/" ? path === "/" || path === "/excluded" : path.startsWith(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium transition-colors ${
+                        active ? "bg-plum text-white" : "text-plum hover:bg-plum-tint"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span className="flex-1">{label}</span>
+                      {href === "/notifications" && unread > 0 && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${active ? "bg-white text-plum" : "bg-rose text-plum"}`}
+                          aria-label={`${unread} unread`}
+                        >
+                          {unread}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
-        <p className="mt-auto px-3 text-xs leading-relaxed text-muted">Public data only. AI assists, you decide.</p>
+        <p className="mt-auto px-4 text-xs leading-relaxed text-muted">Built from public information. You make every decision.</p>
       </aside>
     </>
   );
