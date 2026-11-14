@@ -61,7 +61,7 @@ export function PipelineBoard({ initialCards }: { initialCards: PipelineCard[] }
       )}
       {/* Stable id keeps dnd-kit's aria ids identical on server and client (avoids hydration mismatch). */}
       <DndContext id="pipeline-board" sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 min-[1400px]:mx-0 min-[1400px]:grid min-[1400px]:grid-cols-5 min-[1400px]:overflow-visible min-[1400px]:px-0">
+        <div className="-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 min-[1400px]:mx-0 min-[1400px]:grid min-[1400px]:grid-cols-5 min-[1400px]:gap-3 min-[1400px]:overflow-visible min-[1400px]:px-0">
           {STAGES.map((stage) => (
             <Column key={stage} stage={stage} cards={cards.filter((c) => c.stage === stage)} total={stageTotal(cards, stage)} onStageChange={changeStage} onCardChange={(c) => setCards((cs) => cs.map((x) => (x.id === c.id ? c : x)))} />
           ))}
@@ -92,7 +92,7 @@ function Column({
       className={`stage-${stage} w-[78%] min-w-[260px] shrink-0 snap-start rounded-[16px] p-1 transition-colors min-[1400px]:w-auto min-[1400px]:min-w-0 ${isOver ? "bg-(--stage-bg) ring-2 ring-plum ring-offset-2 ring-offset-page" : ""}`}
     >
       <header className="flex items-center justify-between gap-2 rounded-[12px] bg-(--stage-bg) px-4 py-3">
-        <h2 className="flex items-center gap-2 text-col font-semibold text-plum">
+        <h2 className="flex items-center gap-2 text-col font-semibold! text-plum">
           <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-(--stage-dot)" aria-hidden="true" />
           {STAGE_LABELS[stage]}
         </h2>

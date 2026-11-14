@@ -97,6 +97,8 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
     });
 
   const input = "mt-1 w-full rounded-full border border-line bg-card px-3 py-2 text-body text-plum";
+  // Very large amounts ($100,000+) drop one size so three columns still fit a narrow card.
+  const longFigures = [card.amountAsked, card.amountAwarded, card.received].some((n) => money(n).length > 7);
   const isAwarded = card.stage === "awarded";
   const isDeclined = card.stage === "declined";
 
@@ -125,7 +127,7 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
         )}
       </div>
 
-      <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3">
+      <dl className="mt-3 grid grid-cols-3 gap-1 border-t border-line pt-3">
         {(
           [
             ["Asked", card.amountAsked],
@@ -135,13 +137,13 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
         ).map(([label, value]) => (
           <div key={label} className="min-w-0">
             <dt className="text-meta text-muted">{label}</dt>
-            <dd className="text-body font-semibold tabular-nums text-plum">{money(value)}</dd>
+            <dd className={`font-semibold tabular-nums text-plum ${longFigures ? "text-[13px]" : "text-body"}`}>{money(value)}</dd>
           </div>
         ))}
       </dl>
       {card.deadline && <p className="mt-2 inline-flex rounded-full bg-rose-tint px-2.5 py-0.5 text-meta font-medium text-plum">Due {card.deadline}</p>}
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2" {...stop}>
+      <div className="mt-3 flex flex-wrap items-center gap-2" {...stop}>
         <label className="sr-only" htmlFor={`stage-${card.id}`}>
           Stage for {card.funderName}
         </label>
@@ -149,7 +151,7 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
           id={`stage-${card.id}`}
           value={card.stage}
           onChange={(e) => onStageChange(card.id, e.target.value as Stage)}
-          className="rounded-full border border-line bg-card py-1.5 pl-3 pr-2 text-meta font-medium text-plum"
+          className="shrink-0 rounded-full border border-line bg-card py-1.5 pl-3 pr-2 text-meta font-medium text-plum"
         >
           {STAGES.map((s) => (
             <option key={s} value={s}>
@@ -164,7 +166,7 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
           aria-expanded={editing}
           aria-controls={editing ? popId : undefined}
           aria-haspopup="dialog"
-          className="rounded-full border border-plum/30 bg-card px-3 py-1.5 text-meta font-semibold text-plum hover:bg-plum-tint"
+          className="ml-auto shrink-0 rounded-full border border-plum/30 bg-card px-3 py-1.5 text-meta font-semibold text-plum hover:bg-plum-tint"
         >
           Edit amounts
         </button>
