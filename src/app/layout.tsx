@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import { AppNav } from "@/components/app-nav";
 import "./globals.css";
 
-const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Funder Finder · Tech-Moms",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${figtree.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full font-sans lg:flex">
         <Suspense fallback={<div className="h-14 border-b border-line bg-card lg:h-screen lg:w-64 lg:border-r" />}>
           <AppNav />

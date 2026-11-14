@@ -16,7 +16,7 @@ export function Card({ children, className = "", as: Tag = "section", ...rest }:
 export function StatCard({ label, value, hint, icon, tone = "plum" }: { label: string; value: ReactNode; hint?: ReactNode; icon: ReactNode; tone?: "plum" | "teal" | "rose" }) {
   const toneBg = { plum: "bg-plum-tint", teal: "bg-teal-tint", rose: "bg-rose-tint" }[tone];
   return (
-    <div className={`${CARD} flex items-start gap-4 p-5`}>
+    <div className={`${CARD} flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4 sm:p-5`}>
       <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum ${toneBg}`}>{icon}</span>
       <div className="min-w-0">
         <p className="text-sm text-muted">{label}</p>
@@ -34,6 +34,7 @@ export const BTN = {
   primary: `${BTN_BASE} bg-plum text-white hover:bg-plum/90`,
   secondary: `${BTN_BASE} border border-plum/30 bg-card text-plum hover:bg-plum-tint`,
   soft: `${BTN_BASE} border border-rose/50 bg-card text-plum hover:bg-rose-tint`,
+  link: "text-sm font-medium text-plum underline decoration-plum/40 underline-offset-4 hover:decoration-plum",
 } as const;
 
 /* ---------- Pills (always carry a text label; never color alone) ---------- */
@@ -55,23 +56,30 @@ export function Pill({ children, tone = "neutral", icon, className = "" }: { chi
   );
 }
 
-const BAND_TONE: Record<string, Tone> = { Strong: "teal", "Worth a look": "rose", "Long shot": "plum" };
-const BAND_COLOR: Record<string, string> = { Strong: "#40c4c8", "Worth a look": "#be677c", "Long shot": "#b9a3b1" };
+/** Plain-English names for the stored fit bands (the stored values and filters are unchanged). */
+export const MATCH_LABEL: Record<string, string> = { Strong: "Strong alignment", "Worth a look": "Worth a look", "Long shot": "Long shot" };
+export const matchLabel = (band: string | null) => (band ? (MATCH_LABEL[band] ?? band) : "");
 
 export function BandBadge({ band }: { band: string | null }) {
   if (!band) return <span className="text-xs text-muted">—</span>;
-  return <Pill tone={BAND_TONE[band] ?? "neutral"}>{band}</Pill>;
+  return <Pill tone={band === "Strong" ? "teal" : "plum"}>{matchLabel(band)}</Pill>;
+}
+
+/** "2026-12-03" → "Dec 3" (dates stay as stored; this only formats them for people). */
+export function shortDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 /** Large circular fit score: a ring filled to the score, number inside, band named in text beside/below it. */
 export function ScoreBadge({ total, band, size = "lg" }: { total: number | null; band: string | null; size?: "md" | "lg" }) {
   const dim = size === "lg" ? "h-[72px] w-[72px]" : "h-14 w-14";
-  const color = BAND_COLOR[band ?? ""] ?? "#b9a3b1";
+  const color = "#43bec4"; // teal = fit score
   const style: CSSProperties = { background: `conic-gradient(${color} ${total ?? 0}%, var(--plum-tint) 0)` };
   return (
     <span
       role="img"
-      aria-label={total === null ? "No fit score" : `Fit score ${total} out of 100${band ? `, ${band}` : ""}`}
+      aria-label={total === null ? "No fit score" : `Fit score ${total} out of 100${band ? `, ${matchLabel(band)}` : ""}`}
       title="Fit score (0–100) — not odds of winning"
       style={style}
       className={`inline-flex shrink-0 items-center justify-center rounded-full p-[5px] ${dim}`}
@@ -105,7 +113,12 @@ export function ConfidenceDots({ confidence }: { confidence: string | null }) {
 /** Only shown when an open call is known; unknown status renders nothing. */
 export function OpenCallBadge({ isOpen, deadline }: { isOpen: boolean; deadline: string | null }) {
   if (!isOpen) return null;
-  return <Pill tone="teal">Open call{deadline ? ` · due ${deadline}` : ""}</Pill>;
+  return (
+    <>
+      <Pill tone="teal">Open now</Pill>
+      {deadline && <Pill tone="rose">Due {shortDate(deadline)}</Pill>}
+    </>
+  );
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -135,8 +148,8 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div className="max-w-2xl">
-        <h1 className="text-3xl font-medium text-plum">{title}</h1>
-        {subtitle && <p className="mt-2 text-[15px] leading-relaxed text-muted">{subtitle}</p>}
+        <h1 className="text-display font-semibold text-plum">{title}</h1>
+        {subtitle && <p className="mt-2 text-body text-muted">{subtitle}</p>}
       </div>
       {actions}
     </div>
@@ -145,3 +158,33 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 
 export const usd = (n: number | null | undefined) =>
   n === null || n === undefined ? "—" : `$${Math.round(n).toLocaleString("en-US")}`;
+
+const KEEP_CAPS = new Set(["LLC", "USA", "LOI", "STEM", "YMCA", "YWCA", "PTA", "NAACP"]);
+const CONNECTORS = new Set(["OF", "AND", "FOR", "THE", "IN", "ON", "AT", "TO", "OR"]);
+
+function softenWord(w: string, first: boolean): string {
+  const trailingDot = w.endsWith(".");
+  const bare = trailingDot ? w.slice(0, -1) : w;
+  if (KEEP_CAPS.has(bare)) return w;
+  const lower = bare.toLowerCase();
+  let cased: string;
+  if (CONNECTORS.has(bare) && !first) cased = lower;
+  else if (bare.length <= 2) cased = bare; // state codes and initials stay as they are
+  else cased = lower === "inc" ? "Inc" : lower.charAt(0).toUpperCase() + lower.slice(1);
+  return trailingDot ? `${cased}.` : cased;
+}
+
+/**
+ * Display-only: filings often shout names in ALL CAPS ("BOYS AND GIRLS CLUBS INC").
+ * Turns those into normal capitalization without touching the stored text.
+ */
+export function softenCaps(text: string | null | undefined): string {
+  if (!text) return "";
+  // Runs of two or more ALL-CAPS words (names), then any single long ALL-CAPS word left over.
+  return text
+    .replace(/\b[A-Z][A-Z'&.-]*(?:\s+[A-Z][A-Z'&.-]*)+\b\.?/g, (run) => {
+      let i = 0;
+      return run.split(/(\s+)/).map((tok) => (/^\s+$/.test(tok) ? tok : softenWord(tok, i++ === 0))).join("");
+    })
+    .replace(/\b[A-Z][A-Z'&.-]{2,}\b\.?/g, (w) => softenWord(w, true));
+}

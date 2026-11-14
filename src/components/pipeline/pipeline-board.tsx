@@ -3,11 +3,12 @@
 import { DndContext, PointerSensor, KeyboardSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { useState, useTransition } from "react";
 import { moveStage } from "@/app/actions";
-import { STAGE_LABELS, STAGES, stageTotal, type PipelineCard, type Stage } from "@/lib/pipeline-model";
+import { STAGES, stageTotal, type PipelineCard, type Stage } from "@/lib/pipeline-model";
 import { CheckIcon, CoinsIcon, InfoIcon, PipelineIcon } from "@/components/icons";
 import { usd } from "@/components/ui";
 import { KpiTile } from "./kpi-tile";
 import { PipelineCardView } from "./pipeline-card";
+import { STAGE_NAME } from "./stage-names";
 
 export function PipelineBoard({ initialCards }: { initialCards: PipelineCard[] }) {
   const [cards, setCards] = useState(initialCards);
@@ -44,7 +45,7 @@ export function PipelineBoard({ initialCards }: { initialCards: PipelineCard[] }
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <KpiTile icon={<PipelineIcon className="h-5 w-5" />} label="Open asks" value={usd(openAsks)} caption="Prospect, LOI, Submitted" tone="plum" />
+        <KpiTile icon={<PipelineIcon className="h-5 w-5" />} label="Open asks" value={usd(openAsks)} caption="Prospect, Letter of Intent, Submitted" tone="plum" />
         <KpiTile icon={<CheckIcon className="h-5 w-5" />} label="Committed" value={usd(committed)} caption="Awarded amounts" tone="teal" />
         <KpiTile icon={<CoinsIcon className="h-5 w-5" />} label="Received" value={usd(received)} caption="Payments recorded" tone="rose" />
       </div>
@@ -54,14 +55,14 @@ export function PipelineBoard({ initialCards }: { initialCards: PipelineCard[] }
         <p role="note" className="flex items-start gap-2 rounded-[12px] bg-plum-tint px-4 py-2 text-[13px] leading-5 text-muted">
           <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
-            Cards marked <span className="rounded-full border border-line bg-card px-2 py-0.5 text-meta font-medium">SAMPLE</span> are demo data (Tech-Moms has no CRM yet).{" "}
+            Cards marked <span className="rounded-full border border-line bg-card px-2 py-0.5 text-meta font-medium">SAMPLE</span> are examples so you can see how this works.{" "}
             <a href="/settings" className="font-medium text-plum underline underline-offset-2">Clear them in Settings.</a>
           </span>
         </p>
       )}
       {/* Stable id keeps dnd-kit's aria ids identical on server and client (avoids hydration mismatch). */}
       <DndContext id="pipeline-board" sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="relative -mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 min-[1400px]:mx-0 min-[1400px]:grid min-[1400px]:grid-cols-5 min-[1400px]:gap-3 min-[1400px]:overflow-visible min-[1400px]:px-0">
+        <div className="relative -mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
           {STAGES.map((stage) => (
             <Column key={stage} stage={stage} cards={cards.filter((c) => c.stage === stage)} total={stageTotal(cards, stage)} onStageChange={changeStage} onCardChange={(c) => setCards((cs) => cs.map((x) => (x.id === c.id ? c : x)))} />
           ))}
@@ -88,17 +89,17 @@ function Column({
   return (
     <section
       ref={setNodeRef}
-      aria-label={`${STAGE_LABELS[stage]} column`}
-      className={`stage-${stage} w-[min(78%,300px)] min-w-[260px] shrink-0 snap-start rounded-[16px] p-1 transition-colors min-[1400px]:w-auto min-[1400px]:min-w-0 ${isOver ? "bg-(--stage-bg) ring-2 ring-plum ring-offset-2 ring-offset-page" : ""}`}
+      aria-label={`${STAGE_NAME[stage]} column`}
+      className={`stage-${stage} w-[272px] shrink-0 snap-start rounded-[16px] p-1 transition-colors ${isOver ? "bg-(--stage-bg) ring-2 ring-plum ring-offset-2 ring-offset-page" : ""}`}
     >
       <header className="flex items-center justify-between gap-2 rounded-[12px] bg-(--stage-bg) px-4 py-3">
         <h2 className="flex items-center gap-2 text-col font-semibold! text-plum">
           <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-(--stage-dot)" aria-hidden="true" />
-          {STAGE_LABELS[stage]}
+          {STAGE_NAME[stage]}
         </h2>
         <span className="rounded-full bg-card px-2.5 py-0.5 text-meta font-semibold tabular-nums text-plum" aria-label={`${cards.length} cards`}>{cards.length}</span>
       </header>
-      <p className="px-2 pb-3 pt-3 text-title font-semibold leading-none tabular-nums text-plum" title={stage === "awarded" ? "Committed (awarded)" : "Amount asked"}>
+      <p className="px-2 pb-3 pt-3 font-semibold leading-none tabular-nums text-plum" title={stage === "awarded" ? "Committed (awarded)" : "Amount asked"}>
         <span className="text-[22px]">{usd(total)}</span>
         <span className="ml-1.5 text-meta font-normal text-muted">{stage === "awarded" ? "committed" : "asked"}</span>
       </p>

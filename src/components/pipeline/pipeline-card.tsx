@@ -4,8 +4,9 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { addPayment, updateAmounts } from "@/app/actions";
 import { GripIcon } from "@/components/icons";
-import { STAGE_LABELS, STAGES, type PipelineCard, type Stage } from "@/lib/pipeline-model";
-import { typeLabel, usd } from "@/components/ui";
+import { STAGES, type PipelineCard, type Stage } from "@/lib/pipeline-model";
+import { shortDate, typeLabel, usd } from "@/components/ui";
+import { NEXT_ACTION, STAGE_NAME } from "./stage-names";
 
 interface Props {
   card: PipelineCard;
@@ -98,8 +99,6 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
     });
 
   const input = "mt-1 w-full rounded-full border border-line bg-card px-3 py-2 text-body text-plum";
-  // Very large amounts ($100,000+) drop one size so three columns still fit a narrow card.
-  const longFigures = [card.amountAsked, card.amountAwarded, card.received].some((n) => money(n).length > 7);
   const isAwarded = card.stage === "awarded";
   const isDeclined = card.stage === "declined";
 
@@ -112,7 +111,7 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
       <div className="flex items-start gap-1.5">
         <GripIcon className="mt-0.5 h-4 w-4 shrink-0 text-muted/70 group-hover:text-plum" />
         <div className="min-w-0 flex-1">
-          <p className={`text-cardname font-semibold ${isDeclined ? "text-muted" : "text-plum"}`} title={card.funderName}>
+          <p className={`text-[16px] font-semibold leading-snug ${isDeclined ? "text-muted" : "text-plum"}`} title={card.funderName}>
             {card.funderName}
           </p>
           {card.opportunityTitle && <p className="line-clamp-1 text-meta text-muted">{card.opportunityTitle}</p>}
@@ -128,49 +127,61 @@ export function PipelineCardView({ card, onStageChange, onChange }: Props) {
         )}
       </div>
 
-      <dl className="mt-3 grid grid-cols-3 gap-1 border-t border-line pt-3">
-        {(
-          [
-            ["Asked", card.amountAsked],
-            ["Awarded", card.amountAwarded],
-            ["Received", card.received],
-          ] as const
-        ).map(([label, value]) => (
-          <div key={label} className="min-w-0">
-            <dt className="text-meta text-muted">{label}</dt>
-            <dd className={`font-semibold tabular-nums text-plum ${longFigures ? "text-[13px]" : "text-body"}`}>{money(value)}</dd>
+      <div className="mt-4 border-t border-line pt-3">
+        <div className="flex items-end justify-between gap-2">
+          <div>
+            <p className="text-meta text-muted">Amount requested</p>
+            <p className="text-[17px] font-semibold tabular-nums text-plum">{money(card.amountAsked)}</p>
           </div>
-        ))}
-      </dl>
-      {card.deadline && <p className="mt-2 inline-flex rounded-full bg-rose-tint px-2.5 py-0.5 text-meta font-medium text-plum">Due {card.deadline}</p>}
+          <div {...stop}>
+          <button
+            ref={btnRef}
+            type="button"
+            onClick={togglePopover}
+            aria-expanded={editing}
+            aria-controls={editing ? popId : undefined}
+            aria-haspopup="dialog"
+            className="shrink-0 rounded-full border border-plum/30 bg-card px-3 py-1.5 text-sm font-semibold text-plum hover:bg-plum-tint"
+          >
+            Edit amounts
+          </button>
+          </div>
+        </div>
+        {(card.amountAwarded || card.received > 0) && (
+          <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+            <div>
+              <dt className="text-meta text-muted">Awarded</dt>
+              <dd className="text-body font-semibold tabular-nums text-plum">{money(card.amountAwarded)}</dd>
+            </div>
+            <div>
+              <dt className="text-meta text-muted">Received</dt>
+              <dd className="text-body font-semibold tabular-nums text-plum">{money(card.received)}</dd>
+            </div>
+          </dl>
+        )}
+      </div>
+      {card.deadline ? (
+        <p className="mt-3 inline-flex rounded-full bg-rose-tint px-3 py-1 text-sm font-medium text-plum">Due {shortDate(card.deadline)}</p>
+      ) : (
+        NEXT_ACTION[card.stage] && <p className="mt-3 text-sm text-muted">{NEXT_ACTION[card.stage]}</p>
+      )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2" {...stop}>
+      <div className="mt-3" {...stop}>
         <label className="sr-only" htmlFor={`stage-${card.id}`}>
-          Stage for {card.funderName}
+          Move {card.funderName} to another stage
         </label>
         <select
           id={`stage-${card.id}`}
           value={card.stage}
           onChange={(e) => onStageChange(card.id, e.target.value as Stage)}
-          className="shrink-0 rounded-full border border-line bg-card py-1.5 pl-3 pr-2 text-meta font-medium text-plum"
+          className="w-full rounded-full border border-line bg-card py-2 pl-3 pr-2 text-sm font-medium text-plum"
         >
           {STAGES.map((s) => (
             <option key={s} value={s}>
-              {STAGE_LABELS[s]}
+              {STAGE_NAME[s]}
             </option>
           ))}
         </select>
-        <button
-          ref={btnRef}
-          type="button"
-          onClick={togglePopover}
-          aria-expanded={editing}
-          aria-controls={editing ? popId : undefined}
-          aria-haspopup="dialog"
-          className="ml-auto shrink-0 rounded-full border border-plum/30 bg-card px-3 py-1.5 text-meta font-semibold text-plum hover:bg-plum-tint"
-        >
-          Edit amounts
-        </button>
       </div>
 
       {editing &&
