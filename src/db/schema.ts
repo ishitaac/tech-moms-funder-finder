@@ -101,8 +101,11 @@ export const extractedFields = pgTable("extracted_fields", {
 export const scores = pgTable("scores", {
   id: serial("id").primaryKey(),
   funderId: integer("funder_id").references(() => funders.id, { onDelete: "cascade" }).notNull(),
+  /** Set for government listings: the ranked unit is the opportunity, not the agency. */
+  opportunityId: integer("opportunity_id").references(() => opportunities.id, { onDelete: "cascade" }),
   refreshId: integer("refresh_id").references(() => refreshes.id),
   total: integer("total"),
+  isShortlisted: boolean("is_shortlisted").default(false).notNull(),
   band: text("band"),
   confidence: text("confidence"),
   components: jsonb("components").notNull(),
@@ -131,6 +134,8 @@ export const pipelineItems = pgTable("pipeline_items", {
   deadline: date("deadline"),
   awardedOn: date("awarded_on"),
   notes: text("notes"),
+  /** Demo sample data (PRD: no CRM yet). Shown with a "Sample" badge; clearable in Settings. */
+  isSample: boolean("is_sample").default(false).notNull(),
   createdAt: createdAt(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -53,6 +53,11 @@ describe("foundationFitInput", () => {
     expect(r.gates.find((g) => g.id === "open_to_asks")!.passed).toBe(false);
   });
 
+  test("no filing at all (corporate program): no gates, not excluded", () => {
+    const r = foundationFitInput({ ...base, filing: null, grants: [] });
+    expect(r.gates).toEqual([]);
+  });
+
   test("no grants: active gate fails", () => {
     const r = foundationFitInput({ ...base, grants: [] });
     expect(r.gates.find((g) => g.id === "active")!.passed).toBe(false);

@@ -134,11 +134,15 @@ export function foundationFitInput(f: FoundationFacts): FitInput {
       history: comp(h.score, historyNotes.join("; ") || null, src),
       access: accessComponent(f.openCall, f.funder.acceptsUnsolicited, warmIntro, src),
     },
-    gates: foundationGates({
-      latestGrantYear: f.grants.length ? (f.filing?.taxYear ?? f.funder.latestFilingYear) : null,
-      latestAvailableYear: f.latestAvailableYear,
-      preselectedOnly: f.funder.acceptsUnsolicited === null ? null : !f.funder.acceptsUnsolicited,
-    }),
+    // No 990 on record (e.g. a corporate giving program): gates can't be judged, so don't exclude;
+    // the score relies on website evidence and confidence stays low.
+    gates: f.filing
+      ? foundationGates({
+          latestGrantYear: f.grants.length ? f.filing.taxYear : null,
+          latestAvailableYear: f.latestAvailableYear,
+          preselectedOnly: f.funder.acceptsUnsolicited === null ? null : !f.funder.acceptsUnsolicited,
+        })
+      : [],
   };
 }
 

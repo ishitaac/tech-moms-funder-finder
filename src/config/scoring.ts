@@ -105,5 +105,8 @@ export const GATES = {
   activeWithinYears: 2,
 } as const;
 
+/** Top N (by deterministic score) that get AI extraction and appear in the default list view. */
+export const SHORTLIST_SIZE = 150;
+
 /** Rejected funders resurface if total giving changes by more than this fraction. */
 export const REJECT_RESURFACE_GIVING_CHANGE = 0.5;
