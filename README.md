@@ -35,6 +35,15 @@ npm run ingest -- load                  # load scan results into Postgres
 
 Sources: IRS e-file index (apps.irs.gov) + GivingTuesday 990 data lake public S3 mirror for individual XML filings, ProPublica Nonprofit Explorer API, Grants.gov search2 API. All free, no keys.
 
+## AI and feature flags
+
+AI is **off** unless `AI_ENABLED=true` is set (a key alone does nothing, so a personal key in your OS environment can't spend by accident). With AI off, everything still works from public filings; Utah pages and website open-call detection need AI.
+
+Stretch features are off by default; turn on in `.env.local`:
+`FLAG_BOARD_MEMBERS`, `FLAG_AI_DRAFT`, `FLAG_FULL_DASHBOARD`, `FLAG_WEIGHT_TUNING` (`=true`).
+
+Tunable without code: scoring weights/keywords/bands (`src/config/scoring.ts`), Utah sources (`src/config/utah-sources.ts`), org facts (`src/config/org-profile.ts`), AI models (`AI_MODEL_*`).
+
 ## Tests
 
 ```bash

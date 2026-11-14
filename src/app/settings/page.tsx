@@ -10,7 +10,7 @@ import { isAiConfigured, modelId } from "@/lib/ai/provider";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { RefreshButton, ClearSampleButton } from "@/components/settings/settings-actions";
 import { WeightSliders } from "@/components/settings/weight-sliders";
-import { PageHeader, SourceLink, usd } from "@/components/ui";
+import { PageHeader, SourceLink } from "@/components/ui";
 import type { SourceError } from "@/lib/sources/types";
 
 const USAGE_ROWS = 8;
@@ -124,7 +124,7 @@ async function Settings() {
       )}
 
       <Panel title="Sample data">
-        <p className="text-sm text-muted">The pipeline and dashboard include sample awards and payments for the demo, worth {usd(45_000)} committed.</p>
+        <p className="text-sm text-muted">The pipeline and dashboard include sample awards and payments (marked SAMPLE) because Tech-Moms has no CRM yet.</p>
         <div className="mt-3"><ClearSampleButton /></div>
       </Panel>
     </div>

@@ -65,8 +65,10 @@ export interface DeadlineRow {
 const DEADLINE_WINDOW_DAYS = 60;
 
 /** Applications and open calls due within the next 60 days (PRD dashboard: upcoming deadlines). */
-export async function upcomingDeadlines(today = new Date()): Promise<DeadlineRow[]> {
+export async function upcomingDeadlines(asOf?: Date): Promise<DeadlineRow[]> {
   await connection();
+  // Read the clock only after connection() so Cache Components treats this as request-time.
+  const today = asOf ?? new Date();
   const from = today.toISOString().slice(0, 10);
   const to = new Date(today.getTime() + DEADLINE_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
   const cards = await pipelineCards();

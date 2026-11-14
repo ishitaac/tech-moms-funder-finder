@@ -150,18 +150,26 @@ Config lives in `src/config/scoring.ts` (weights, keywords, bands, thresholds). 
 
 Keep this checklist current and push after each item so the team can resume from here.
 
+Status as of end of pre-build (2026-11-13). ~100 unit tests passing (`npm test`), typecheck + lint clean.
+
 - [x] 0. Spec, backlog, Next.js scaffold, private GitHub repo + collaborators
-- [ ] 1. DB schema + Docker Postgres + Drizzle migrations + seed script (sample data so UI is never empty)
-- [ ] 2. Config: scoring, flags, sources, AI provider abstraction
-- [ ] 3. Scoring engine (gates, components, renormalize, bands, confidence) + tests
-- [ ] 4. Ingestion: ProPublica client, 990-PF XML parser (+ tests), peer-org reverse lookup
-- [ ] 5. Grants.gov + Utah pages + website adapters; AI extraction with source URLs; cost logging
-- [ ] 6. UI: ranked list + drawer + excluded view + trust banner
-- [ ] 7. Review actions (approve/snooze/reject) → pipeline board + committed vs received chart
-- [ ] 8. Notifications page, Resend email, reminders, ICS export, Settings + AI usage panel
-- [ ] 9. Cron refresh route (delta, token cap)
-- [ ] 10. Flagged stretch: board members, AI draft, full dashboard, weight tuning
-- [ ] 11. Branding pass, demo dataset, Candid spot-check validation
+- [x] 1. DB schema + Postgres (embedded via `npm run db:start`, Docker optional) + Drizzle `db:push` + seed script
+- [x] 2. Config: scoring, flags, sources (`utah-sources.ts`), AI provider abstraction (`AI_ENABLED` opt-in)
+- [x] 3. Scoring engine (gates, components, renormalize, bands, confidence) + tests — **calibrated** against known Tech-Moms funders (BACKLOG #13)
+- [x] 4. Ingestion: 990-PF XML parser (+ tests), peer-org list, full reverse-lookup scan (130,710 filings → 10,569 foundations loaded)
+- [x] 5. Grants.gov + Utah DWS pages + website adapters; AI extraction with verbatim-quote guardrails; cost logging
+- [x] 6. UI: ranked list + side panel + excluded view + trust banner
+- [x] 7. Review actions (approve/snooze/reject) → pipeline board (drag + select) + committed vs received chart
+- [x] 8. Notifications page, Resend email, deadline reminders, ICS export (`/api/calendar/all`), Settings + AI usage panel
+- [x] 9. Cron refresh route `/api/cron/refresh` (daily check, runs every 14 days, token cap) + `vercel.json`
+- [x] 10. Flagged stretch built: board members, AI draft, full dashboard, weight tuning (all off by default)
+- [ ] 11. Demo prep: decide flags + AI key (BACKLOG #1, #17), fill `org-profile.ts`, Candid spot-check validation, rehearse
+- [ ] 12. Hosting (team, after hackathon — BACKLOG #19)
+
+### What is NOT verified yet
+- AI draft (US-10) and weight-tuning UI were typechecked but not clicked through in a browser (flags off).
+- Email sending (no Resend key configured).
+- E2E browser tests don't exist (unit tests cover scoring, parsing, filters, pipeline math, ICS).
 
 ## 11. Running locally
 
